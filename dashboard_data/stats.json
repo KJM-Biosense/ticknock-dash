@@ -1,0 +1,599 @@
+{
+  "site": {
+    "area_ha": 7.77,
+    "area_m2": 77717,
+    "perim_km": 1.41,
+    "perim_m": 1410
+  },
+  "habitats_area": {
+    "total_polygons": 53,
+    "total_ha": 7.6,
+    "n_mosaics": 8,
+    "grey_green": [
+      {
+        "Grey.vs.Gr": "Green",
+        "ha": 7.602,
+        "pct": 100
+      }
+    ],
+    "art_semi": [
+      {
+        "Artificial": "Artificial",
+        "ha": 1.852,
+        "pct": 24.4
+      },
+      {
+        "Artificial": "Semi-Natural",
+        "ha": 5.75,
+        "pct": 75.6
+      }
+    ],
+    "fossitt": [
+      {
+        "Fossitt_primary": "WS1",
+        "FossLayer": "WS1 - Scrub",
+        "ha": 3.837,
+        "pct": 50.5
+      },
+      {
+        "Fossitt_primary": "WD4",
+        "FossLayer": "WD4 - Conifer plantation",
+        "ha": 1.852,
+        "pct": 24.4
+      },
+      {
+        "Fossitt_primary": "GS4",
+        "FossLayer": "GS4 - Wet grassland",
+        "ha": 0.991,
+        "pct": 13
+      },
+      {
+        "Fossitt_primary": "GS3",
+        "FossLayer": "GS3 - Dry-humid acid grassland",
+        "ha": 0.733,
+        "pct": 9.6
+      },
+      {
+        "Fossitt_primary": "GS3",
+        "FossLayer": "GS4 - Wet grassland",
+        "ha": 0.066,
+        "pct": 0.9
+      },
+      {
+        "Fossitt_primary": "WS1",
+        "FossLayer": "GS4 - Wet grassland",
+        "ha": 0.045,
+        "pct": 0.6
+      },
+      {
+        "Fossitt_primary": "GS4",
+        "FossLayer": "GS3 - Dry-humid acid grassland",
+        "ha": 0.033,
+        "pct": 0.4
+      },
+      {
+        "Fossitt_primary": "HD1",
+        "FossLayer": "HD1 - Dense bracken",
+        "ha": 0.024,
+        "pct": 0.3
+      },
+      {
+        "Fossitt_primary": "WD1",
+        "FossLayer": "WD1 - (Mixed) broadleaved woodland",
+        "ha": 0.02,
+        "pct": 0.3
+      },
+      {
+        "Fossitt_primary": null,
+        "FossLayer": null,
+        "ha": 0,
+        "pct": 0
+      }
+    ],
+    "mosaic_combos": [
+      {
+        "mosaic_codes": "GS3 / GS1",
+        "n_polygons": 5,
+        "total_ha": 0.172
+      },
+      {
+        "mosaic_codes": "GS3 /GS1",
+        "n_polygons": 1,
+        "total_ha": 0.028
+      },
+      {
+        "mosaic_codes": "GS4/GS3",
+        "n_polygons": 2,
+        "total_ha": 0.314
+      }
+    ]
+  },
+  "habitats_linear": {
+    "total_features": 128,
+    "total_m": 3867,
+    "by_type": [
+      {
+        "FossLayer": "FW4",
+        "total_m": 2195
+      },
+      {
+        "FossLayer": "FW1",
+        "total_m": 820
+      },
+      {
+        "FossLayer": "WL1",
+        "total_m": 502
+      },
+      {
+        "FossLayer": "WL1 - SR",
+        "total_m": 350
+      }
+    ]
+  },
+  "birds": {
+    "total_records": 58,
+    "total_species": 27,
+    "n_confirmed_breeders": 3,
+    "n_red_amber": 4,
+    "confirmed_breeders": [
+      {
+        "BTO.Name": "Blackbird",
+        "BTO.Code": "B.",
+        "BoCCI.Stat": "Green"
+      },
+      {
+        "BTO.Name": "Blue tit",
+        "BTO.Code": "BT",
+        "BoCCI.Stat": "Green"
+      },
+      {
+        "BTO.Name": "Willow warbler",
+        "BTO.Code": "WW",
+        "BoCCI.Stat": "Amber"
+      }
+    ],
+    "red_amber_species": [
+      {
+        "BTO.Name": "Swallow",
+        "BTO.Code": "SL",
+        "BoCCI.Stat": "Amber"
+      },
+      {
+        "BTO.Name": "Willow warbler",
+        "BTO.Code": "WW",
+        "BoCCI.Stat": "Amber"
+      },
+      {
+        "BTO.Name": "Red kite",
+        "BTO.Code": "KT",
+        "BoCCI.Stat": "Red"
+      },
+      {
+        "BTO.Name": "Snipe",
+        "BTO.Code": "SN",
+        "BoCCI.Stat": "Red"
+      }
+    ],
+    "species_records": [
+      {
+        "BTO.Name": "Willow warbler",
+        "BTO.Code": "WW",
+        "BoCCI.Stat": "Amber",
+        "n_records": 6
+      },
+      {
+        "BTO.Name": "Blackcap",
+        "BTO.Code": "BC",
+        "BoCCI.Stat": "Green",
+        "n_records": 5
+      },
+      {
+        "BTO.Name": "Wren",
+        "BTO.Code": "Wr",
+        "BoCCI.Stat": "Green",
+        "n_records": 5
+      },
+      {
+        "BTO.Name": "Chaffinch",
+        "BTO.Code": "CH",
+        "BoCCI.Stat": "Green",
+        "n_records": 4
+      },
+      {
+        "BTO.Name": "Coal tit",
+        "BTO.Code": "CT",
+        "BoCCI.Stat": "Green",
+        "n_records": 3
+      },
+      {
+        "BTO.Name": "Wren",
+        "BTO.Code": "WR",
+        "BoCCI.Stat": "Green",
+        "n_records": 3
+      },
+      {
+        "BTO.Name": "Blue tit",
+        "BTO.Code": "BT",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Buzzard",
+        "BTO.Code": "BZ",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Goldcrest",
+        "BTO.Code": "GC",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Goldfinch",
+        "BTO.Code": "GO",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Great tit",
+        "BTO.Code": "GT",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Hooded crow",
+        "BTO.Code": "HC",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Robin",
+        "BTO.Code": "R.",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Swallow",
+        "BTO.Code": "SL",
+        "BoCCI.Stat": "Amber",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Woodpigeon",
+        "BTO.Code": "WP",
+        "BoCCI.Stat": "Green",
+        "n_records": 2
+      },
+      {
+        "BTO.Name": "Blackbird",
+        "BTO.Code": "B",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Blackbird",
+        "BTO.Code": "B.",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Bullfinch",
+        "BTO.Code": "BF",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Chiffchaff",
+        "BTO.Code": "CC",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Dunnock",
+        "BTO.Code": "D.",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Jackdaw",
+        "BTO.Code": "JD",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Jay",
+        "BTO.Code": "J.",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Pheasant",
+        "BTO.Code": "PH",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Red kite",
+        "BTO.Code": "KT",
+        "BoCCI.Stat": "Red",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Siskin",
+        "BTO.Code": "SK",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Snipe",
+        "BTO.Code": "SN",
+        "BoCCI.Stat": "Red",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Song thrush",
+        "BTO.Code": "ST",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Treecreeper",
+        "BTO.Code": "TC",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      },
+      {
+        "BTO.Name": "Whitethroat",
+        "BTO.Code": "WH",
+        "BoCCI.Stat": "Green",
+        "n_records": 1
+      }
+    ],
+    "species_per_habitat": [
+      {
+        "Habitat": "WD4",
+        "n_species": 12
+      },
+      {
+        "Habitat": "WS1",
+        "n_species": 9
+      },
+      {
+        "Habitat": "GS4",
+        "n_species": 5
+      },
+      {
+        "Habitat": "WL1",
+        "n_species": 5
+      },
+      {
+        "Habitat": "GS3",
+        "n_species": 3
+      }
+    ]
+  },
+  "bats": {
+    "total_records": 16,
+    "total_species": 4,
+    "species_records": [
+      {
+        "Species": "Nyctalus leisleri",
+        "Common.Nam": "Leisler's Bat",
+        "n_records": 10
+      },
+      {
+        "Species": "Pipistrellus pipistrellus",
+        "Common.Nam": "Common pipistrelle",
+        "n_records": 4
+      },
+      {
+        "Species": "Pipistrellus nathusii",
+        "Common.Nam": "Nathusius’ Pipistrelle",
+        "n_records": 1
+      },
+      {
+        "Species": "Pipistrellus pygmaeus",
+        "Common.Nam": "Soprano Pipistrelle",
+        "n_records": 1
+      }
+    ]
+  },
+  "amphibians": {
+    "total_records": 5,
+    "total_species": 2,
+    "records": [
+      {
+        "fid": 1,
+        "Date": "16.06.2025",
+        "Species": "Rana temporaria",
+        "Common.Nam": "Common Frog",
+        "Notes": "Adult",
+        "Recorder": "FN",
+        "Photo.Sour": "Stock"
+      },
+      {
+        "fid": 189,
+        "Date": "12.02.2026",
+        "Species": "Rana temporaria",
+        "Common.Nam": "Common Frog",
+        "Notes": "Frogspawn",
+        "Recorder": "FN",
+        "Photo.Sour": "Field"
+      },
+      {
+        "fid": 190,
+        "Date": "11.04.2026",
+        "Species": "Rana temporaria",
+        "Common.Nam": "Common Frog",
+        "Notes": "Tadpoles",
+        "Recorder": "FN",
+        "Photo.Sour": "Field"
+      },
+      {
+        "fid": 192,
+        "Date": "12.08.2025",
+        "Species": "Bufo bufo",
+        "Common.Nam": "Common Toad",
+        "Notes": "Adult",
+        "Recorder": "FN/ AF",
+        "Photo.Sour": "Field"
+      },
+      {
+        "fid": 193,
+        "Date": "01.08.2025",
+        "Species": "Rana temporaria",
+        "Common.Nam": "Common Frog",
+        "Notes": "Adult",
+        "Recorder": "FN",
+        "Photo.Sour": "Field"
+      }
+    ]
+  },
+  "invertebrates": {
+    "total_records": 10,
+    "total_species": 7,
+    "records": [
+      {
+        "fid": 13,
+        "Date": "01.08.2025",
+        "Species": "Pararge aegeria",
+        "Common.Nam": "Speckled Wood Butterfly",
+        "Notes": "Adult",
+        "Recorder": "FN",
+        "Photo.Sour": "Stock"
+      },
+      {
+        "fid": 191,
+        "Date": "21.05.2025",
+        "Species": "Anthocharis cardamines",
+        "Common.Nam": "Orange Tip Butterfly",
+        "Notes": "Adult Male",
+        "Recorder": "FN",
+        "Photo.Sour": "Stock"
+      },
+      {
+        "fid": 194,
+        "Date": "23.05.2025",
+        "Species": "Pieris napi",
+        "Common.Nam": "Green-veined White Butterfly",
+        "Notes": "Adult",
+        "Recorder": "FN",
+        "Photo.Sour": "Field"
+      },
+      {
+        "fid": 195,
+        "Date": "24.06.2025",
+        "Species": "Aphantopus hyperantus",
+        "Common.Nam": "Ringlet Butterfly",
+        "Notes": "Adult",
+        "Recorder": "FN",
+        "Photo.Sour": "Field"
+      },
+      {
+        "fid": 196,
+        "Date": "21.05.2025",
+        "Species": "Anthocharis cardamines",
+        "Common.Nam": "Orange Tip Butterfly",
+        "Notes": "Adult Female",
+        "Recorder": "FN",
+        "Photo.Sour": "Stock"
+      },
+      {
+        "fid": 197,
+        "Date": "23.05.2025",
+        "Species": "Zygaena filipendulae",
+        "Common.Nam": "6-Spot Burnet Moth",
+        "Notes": "Cocoon",
+        "Recorder": "FN",
+        "Photo.Sour": "Field"
+      },
+      {
+        "fid": 198,
+        "Date": "04.06.2025",
+        "Species": "Zygaena filipendulae",
+        "Common.Nam": "6-Spot Burnet Moth",
+        "Notes": "Adult",
+        "Recorder": "FN",
+        "Photo.Sour": null
+      },
+      {
+        "fid": 199,
+        "Date": "01.08.2025",
+        "Species": "Tyria jacobaeae",
+        "Common.Nam": "Cinnabar Moth",
+        "Notes": "Caterpillar",
+        "Recorder": "FN",
+        "Photo.Sour": "Field"
+      },
+      {
+        "fid": 200,
+        "Date": "24.06.2025",
+        "Species": "Aglais io",
+        "Common.Nam": "Peacock Butterfly",
+        "Notes": "Caterpillar",
+        "Recorder": "FN",
+        "Photo.Sour": null
+      },
+      {
+        "fid": 201,
+        "Date": "01.08.2025",
+        "Species": "Aglais io",
+        "Common.Nam": "Peacock Butterfly",
+        "Notes": "Adult",
+        "Recorder": "FN",
+        "Photo.Sour": "Stock"
+      }
+    ]
+  },
+  "trees": {
+    "total_planted": 154,
+    "total_species": 6,
+    "by_species": [
+      {
+        "Species": "Birch",
+        "n": 51
+      },
+      {
+        "Species": "Alder",
+        "n": 34
+      },
+      {
+        "Species": "Oak",
+        "n": 25
+      },
+      {
+        "Species": "Willow",
+        "n": 21
+      },
+      {
+        "Species": "Rowan",
+        "n": 18
+      },
+      {
+        "Species": "Holly",
+        "n": 5
+      }
+    ]
+  },
+  "cameras": {
+    "total_cameras": 3,
+    "cameras": [
+      {
+        "fid": 1,
+        "Camera.Nam": "Cam 1",
+        "Notes": null
+      },
+      {
+        "fid": 2,
+        "Camera.Nam": "Cam 2",
+        "Notes": null
+      },
+      {
+        "fid": 3,
+        "Camera.Nam": "Cam 3",
+        "Notes": null
+      }
+    ]
+  }
+}

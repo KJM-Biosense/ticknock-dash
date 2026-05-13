@@ -1,0 +1,23 @@
+{
+"type": "FeatureCollection",
+"name": "bats",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.249385735934438, 53.249365664867611 ] } },
+{ "type": "Feature", "properties": { "fid": 2.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.249497849631916, 53.249465625626243 ] } },
+{ "type": "Feature", "properties": { "fid": 3.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.249365303985926, 53.2493578978698 ] } },
+{ "type": "Feature", "properties": { "fid": 4.0, "Species": "Pipistrellus pipistrellus", "Common.Nam": "Common pipistrelle", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.249145022440833, 53.249163011875559 ] } },
+{ "type": "Feature", "properties": { "fid": 5.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.248497109077991, 53.249277940541582 ] } },
+{ "type": "Feature", "properties": { "fid": 6.0, "Species": "Pipistrellus pipistrellus", "Common.Nam": "Common pipistrelle", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.248472326785429, 53.249275087389009 ] } },
+{ "type": "Feature", "properties": { "fid": 7.0, "Species": "Pipistrellus pygmaeus", "Common.Nam": "Soprano Pipistrelle", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.248022393707678, 53.249267230027087 ] } },
+{ "type": "Feature", "properties": { "fid": 8.0, "Species": "Pipistrellus pipistrellus", "Common.Nam": "Common pipistrelle", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.248022221219945, 53.249373008506623 ] } },
+{ "type": "Feature", "properties": { "fid": 9.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.247868455003678, 53.249429238823787 ] } },
+{ "type": "Feature", "properties": { "fid": 10.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.247836994230382, 53.249437487704242 ] } },
+{ "type": "Feature", "properties": { "fid": 11.0, "Species": "Pipistrellus nathusii", "Common.Nam": "Nathusius’ Pipistrelle", "Date": "08.07.2025", "Habitat": null, "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.247915737960986, 53.249640922594047 ] } },
+{ "type": "Feature", "properties": { "fid": 12.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": "WS1", "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.24776757475612, 53.249839069806207 ] } },
+{ "type": "Feature", "properties": { "fid": 13.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": "GS3", "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.247685337213044, 53.250005875562593 ] } },
+{ "type": "Feature", "properties": { "fid": 15.0, "Species": "Pipistrellus pipistrellus", "Common.Nam": "Common pipistrelle", "Date": "08.07.2025", "Habitat": "GS3", "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.249199493478473, 53.250519438686133 ] } },
+{ "type": "Feature", "properties": { "fid": 16.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": "GS3", "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.249264584715028, 53.250520394812277 ] } },
+{ "type": "Feature", "properties": { "fid": 17.0, "Species": "Nyctalus leisleri", "Common.Nam": "Leisler's Bat", "Date": "08.07.2025", "Habitat": "GS3", "Surveyor": "AF" }, "geometry": { "type": "Point", "coordinates": [ -6.249161965849134, 53.250640958026658 ] } }
+]
+}

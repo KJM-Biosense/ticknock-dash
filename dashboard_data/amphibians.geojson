@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "amphibians",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "fid": 1.0, "Date": "16.06.2025", "Recorder": "FN", "Notes": "Adult", "Type": "Amphibians", "Species": "Rana temporaria", "Photo_1": null, "Photo_2": null, "Photo_3": null, "Parcel_no": null, "Feature.Re": null, "Common.Nam": "Common Frog", "Photo.Sour": "Stock" }, "geometry": { "type": "Point", "coordinates": [ -6.247048014644256, 53.250635111593084 ] } },
+{ "type": "Feature", "properties": { "fid": 189.0, "Date": "12.02.2026", "Recorder": "FN", "Notes": "Frogspawn", "Type": "Amphibians", "Species": "Rana temporaria", "Photo_1": null, "Photo_2": null, "Photo_3": null, "Parcel_no": null, "Feature.Re": null, "Common.Nam": "Common Frog", "Photo.Sour": "Field" }, "geometry": { "type": "Point", "coordinates": [ -6.247527919706021, 53.249588309865551 ] } },
+{ "type": "Feature", "properties": { "fid": 190.0, "Date": "11.04.2026", "Recorder": "FN", "Notes": "Tadpoles", "Type": "Amphibians", "Species": "Rana temporaria", "Photo_1": null, "Photo_2": null, "Photo_3": null, "Parcel_no": null, "Feature.Re": null, "Common.Nam": "Common Frog", "Photo.Sour": "Field" }, "geometry": { "type": "Point", "coordinates": [ -6.247517004505461, 53.249557750077017 ] } },
+{ "type": "Feature", "properties": { "fid": 192.0, "Date": "12.08.2025", "Recorder": "FN/ AF", "Notes": "Adult", "Type": "Amphibians", "Species": "Bufo bufo", "Photo_1": null, "Photo_2": null, "Photo_3": null, "Parcel_no": null, "Feature.Re": null, "Common.Nam": "Common Toad", "Photo.Sour": "Field" }, "geometry": { "type": "Point", "coordinates": [ -6.248215746878996, 53.249591530815046 ] } },
+{ "type": "Feature", "properties": { "fid": 193.0, "Date": "01.08.2025", "Recorder": "FN", "Notes": "Adult", "Type": "Amphibians", "Species": "Rana temporaria", "Photo_1": null, "Photo_2": null, "Photo_3": null, "Parcel_no": null, "Feature.Re": null, "Common.Nam": "Common Frog", "Photo.Sour": "Field" }, "geometry": { "type": "Point", "coordinates": [ -6.247496706280269, 53.249574880549325 ] } }
+]
+}
