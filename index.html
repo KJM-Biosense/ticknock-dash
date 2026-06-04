@@ -7,10 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{
-  --g:#176560;--gd:#0f4742;--gs:#e9f4f2;--gb:#d7e5e2;
-  --tx:#162422;--mu:#6e8986;--bd:#d7e5e2;--wh:#fff;--bg:#f4f8f7;
-}
+:root{--g:#176560;--gd:#0f4742;--gs:#e9f4f2;--gb:#d7e5e2;--tx:#162422;--mu:#6e8986;--bd:#d7e5e2;--wh:#fff;--bg:#f4f8f7;--hl:#f5a623;}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);font-size:13px}
 .app{height:100vh;display:flex;flex-direction:column}
@@ -53,16 +50,25 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
 .acc-hdr-icon{width:15px;height:15px;object-fit:contain;flex-shrink:0}
 .acc-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
 .acc-name{font-size:12px;font-weight:800;flex:1}
-.acc-chev{font-size:10px;color:var(--mu);transition:transform .2s;flex-shrink:0}
+.acc-chev{font-size:15px;color:var(--mu);transition:transform .2s;flex-shrink:0;line-height:1}
 .acc-card.open .acc-chev{transform:rotate(180deg)}
 .acc-body{display:none;flex-direction:column;border-top:1px solid var(--bd)}
 .acc-card.open .acc-body{display:flex}
 .acc-scroll{overflow-y:auto;padding:10px 11px;display:flex;flex-direction:column;gap:8px;max-height:360px}
-.acc-footer{padding:6px 11px 9px;flex-shrink:0;display:flex;justify-content:flex-end;border-top:1px solid var(--bd);background:#fafcfb}
+.acc-footer{padding:6px 11px 9px;flex-shrink:0;display:flex;align-items:center;justify-content:flex-end;gap:6px;border-top:1px solid var(--bd);background:#fafcfb}
+/* STAT CHIPS - clickable */
 .stat-row{display:flex;gap:6px;flex-shrink:0}
-.stat-chip{flex:1;background:var(--gs);border-radius:7px;padding:7px 9px;display:flex;flex-direction:column;gap:2px}
+.stat-chip{flex:1;background:var(--gs);border-radius:7px;padding:7px 9px;display:flex;flex-direction:column;gap:2px;position:relative}
+.stat-chip.clickable{cursor:pointer;transition:all .15s}
+.stat-chip.clickable:hover{background:#d5ede9}
+.stat-chip.chip-active{background:var(--g) !important;border-color:var(--g) !important}
+.stat-chip.chip-active .stat-val{color:#fff !important}
+.stat-chip.chip-active .stat-lbl{color:rgba(255,255,255,.75)}
 .stat-val{font-size:17px;font-weight:800;color:var(--g);line-height:1}
 .stat-lbl{font-size:9.5px;color:var(--mu);margin-top:1px}
+.chip-info{position:absolute;top:5px;right:6px;width:13px;height:13px;border-radius:50%;background:rgba(23,101,96,.18);color:var(--g);font-size:8px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:default;z-index:2}
+.chip-info:hover .chip-tip{display:block}
+.chip-tip{display:none;position:absolute;right:0;top:16px;width:200px;background:#162422;color:#fff;font-size:10.5px;font-weight:400;line-height:1.5;padding:7px 9px;border-radius:7px;z-index:9999;pointer-events:none;white-space:normal}
 .plot-tabs{display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0}
 .plot-tab{font-size:10px;font-weight:700;padding:4px 9px;border-radius:5px;border:1px solid var(--bd);background:#fff;color:var(--mu);cursor:pointer;transition:all .12s;font-family:Inter,sans-serif}
 .plot-tab.active{background:var(--g);color:#fff;border-color:var(--g)}
@@ -75,11 +81,24 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
 .info-tip{display:none;position:absolute;left:18px;top:-4px;width:210px;background:#162422;color:#fff;font-size:10.5px;font-weight:400;line-height:1.5;padding:7px 9px;border-radius:7px;z-index:9999;pointer-events:none;white-space:normal}
 .expand-btn{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:var(--mu);background:none;border:1px solid var(--bd);border-radius:5px;padding:4px 8px;cursor:pointer;font-family:Inter,sans-serif;transition:all .12s}
 .expand-btn:hover{background:var(--gs);color:var(--g);border-color:var(--g)}
-.mini-bar-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px}
+/* MINI BARS - clickable */
+.mini-bar-row{display:flex;align-items:center;gap:6px;padding:4px 3px;font-size:11px;border-radius:4px;transition:background .1s}
+.mini-bar-row.clickable-row{cursor:pointer}
+.mini-bar-row.clickable-row:hover{background:var(--gs)}
 .mini-bar-label{width:115px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx)}
 .mini-bar-bg{flex:1;height:6px;background:var(--gb);border-radius:3px;overflow:hidden}
 .mini-bar-fill{height:100%;border-radius:3px}
 .mini-bar-val{width:36px;text-align:right;color:var(--mu);font-size:10px;flex-shrink:0}
+/* FOSSITT ROWS */
+.fossitt-row{display:flex;align-items:center;gap:5px;padding:4px 3px;border-radius:4px;font-size:11px}
+.f-label{width:105px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx)}
+.f-bar-bg{flex:1;height:6px;background:var(--gb);border-radius:3px;overflow:hidden}
+.f-bar-fill{height:100%;border-radius:3px}
+.f-val{width:42px;text-align:right;color:var(--mu);font-size:10px;flex-shrink:0}
+.f-info{position:relative;flex-shrink:0}
+.f-info-btn{width:13px;height:13px;border-radius:50%;background:var(--gb);color:var(--mu);font-size:8px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:default}
+.f-info-btn:hover .f-tip{display:block}
+.f-tip{display:none;position:absolute;right:0;top:16px;width:210px;background:#162422;color:#fff;font-size:10.5px;font-weight:400;line-height:1.5;padding:7px 9px;border-radius:7px;z-index:9999;pointer-events:none;white-space:normal}
 .stacked-bar{height:22px;border-radius:5px;overflow:hidden;display:flex;margin:4px 0}
 .stacked-seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
 .mosaic-table{width:100%;border-collapse:collapse;font-size:11px}
@@ -102,7 +121,8 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
 .stage-img:hover{transform:scale(1.03)}
 .stage-lbl{font-size:10px;font-weight:700;padding:4px 6px;color:var(--tx)}
 .stage-sci{font-size:9px;color:var(--mu);font-style:italic;padding:0 6px 5px}
-.obs-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #eef3f2}
+.obs-row{display:flex;align-items:center;gap:8px;padding:6px 3px;border-bottom:1px solid #eef3f2;border-radius:4px;transition:background .1s}
+.obs-row:hover{background:var(--gs)}
 .obs-row:last-child{border-bottom:none}
 .obs-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .obs-photo{width:38px;height:38px;border-radius:5px;object-fit:cover;flex-shrink:0;cursor:zoom-in}
@@ -136,6 +156,8 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
 .po-sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mu)}
 .leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 8px 24px rgba(10,48,44,.15);padding:0!important;overflow:hidden}
 .leaflet-popup-content{margin:0!important;line-height:1.5}
+.leaflet-tooltip{background:#162422;color:#fff;border:none;border-radius:7px;font-family:Inter,sans-serif;font-size:11.5px;font-weight:600;padding:6px 10px;box-shadow:0 3px 10px rgba(0,0,0,.3);white-space:nowrap}
+.leaflet-tooltip::before{border-top-color:#162422}
 .mp{font-family:Inter,sans-serif;font-size:12px;min-width:210px;max-width:270px}
 .mp-img{width:100%;height:130px;object-fit:cover;display:block;cursor:zoom-in}
 .mp-body{padding:10px 13px 12px}
@@ -209,87 +231,100 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
       <div class="sp-scroll">
 
         <div class="acc-card open" id="card-study">
-          <div class="acc-hdr"><div class="acc-dot" style="background:#176560"></div><div class="acc-name">Site boundary</div><div class="acc-chev">▾</div></div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#176560"></div><div class="acc-name">Site boundary</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-area-ha">—</div><div class="stat-lbl">Hectares</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-perim-km">—</div><div class="stat-lbl">Perimeter km</div></div>
+                <div class="stat-chip"><div class="stat-val" id="stat-area-ha">&#8212;</div><div class="stat-lbl">Hectares</div></div>
+                <div class="stat-chip"><div class="stat-val" id="stat-perim-km">&#8212;</div><div class="stat-lbl">Perimeter km</div></div>
               </div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="study">⤢ Expand</button></div>
+            <div class="acc-footer"><button class="expand-btn" data-popout="study">&#10530; Expand</button></div>
           </div>
         </div>
 
         <div class="acc-card" id="card-hab_area">
-          <div class="acc-hdr"><div class="acc-dot" style="background:#3a9a40"></div><div class="acc-name">Area habitats</div><div class="acc-chev">▾</div></div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#3a9a40"></div><div class="acc-name">Area habitats</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-hab-total">—</div><div class="stat-lbl">Total habitats</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-hab-mosaics">—</div><div class="stat-lbl">Mosaics</div></div>
+                <div class="stat-chip clickable" id="chip-hab-areas" data-group="hab" data-pane="fossitt">
+                  <div class="chip-info">i<div class="chip-tip">Total number of individual habitat polygons mapped across the site. Multiple areas may share the same habitat type.</div></div>
+                  <div class="stat-val" id="stat-hab-areas">&#8212;</div><div class="stat-lbl">Mapped areas</div>
+                </div>
+                <div class="stat-chip clickable" id="chip-hab-types" data-group="hab" data-pane="fossitt">
+                  <div class="chip-info">i<div class="chip-tip">Number of distinct Fossitt habitat types recorded on site &#8212; the variety of different habitats present.</div></div>
+                  <div class="stat-val" id="stat-hab-types">&#8212;</div><div class="stat-lbl">Habitat types</div>
+                </div>
               </div>
-              <div class="plot-tabs">
-                <button class="plot-tab active" data-group="hab" data-pane="fossitt">Fossitt</button>
-                <button class="plot-tab" data-group="hab" data-pane="artnat">Art. vs Natural</button>
-                <button class="plot-tab" data-group="hab" data-pane="mosaic">Mosaics</button>
+              <div class="stat-row">
+                <div class="stat-chip clickable" id="chip-hab-mosaics" data-group="hab" data-pane="mosaic">
+                  <div class="chip-info">i<div class="chip-tip">Mosaic habitats are patches where two or more distinct habitat types occur together, too intermingled to map separately.</div></div>
+                  <div class="stat-val" id="stat-hab-mosaics">&#8212;</div><div class="stat-lbl">Mosaics</div>
+                </div>
+                <div class="stat-chip clickable" id="chip-hab-seminat" data-group="hab" data-pane="artnat">
+                  <div class="chip-info">i<div class="chip-tip">Percentage of the site covered by semi-natural vegetation, as opposed to artificial or heavily modified habitats such as conifer plantations.</div></div>
+                  <div class="stat-val" id="stat-hab-seminat">&#8212;</div><div class="stat-lbl">% semi-natural</div>
+                </div>
               </div>
               <div id="hab-fossitt" class="plot-pane active">
-                <div class="plot-hdr"><div class="plot-title">Fossitt classification</div><div class="info-btn">i<div class="info-tip">Fossitt is the standard Irish habitat classification system. Each code represents a distinct habitat type.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Fossitt classification</div><div class="info-btn">i<div class="info-tip">Fossitt is Ireland&#39;s standard habitat classification. Each code represents a distinct vegetation community type. Hover the &#9432; on each row for a plain English description.</div></div></div>
                 <div id="fossitt-bars"></div>
               </div>
               <div id="hab-artnat" class="plot-pane">
-                <div class="plot-hdr"><div class="plot-title">Artificial vs semi-natural</div><div class="info-btn">i<div class="info-tip">Semi-natural habitats have developed with minimal human modification. Artificial habitats are heavily modified, such as conifer plantations.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Artificial vs semi-natural</div><div class="info-btn">i<div class="info-tip">Semi-natural habitats develop with minimal human modification. Artificial habitats are heavily modified, such as conifer plantations.</div></div></div>
                 <div id="artnat-bar"></div>
               </div>
               <div id="hab-mosaic" class="plot-pane">
-                <div class="plot-hdr"><div class="plot-title">Mosaic habitats</div><div class="info-btn">i<div class="info-tip">A mosaic habitat is where two or more habitat types occur together in a patch too small to map separately.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Mosaic habitats</div><div class="info-btn">i<div class="info-tip">A mosaic habitat is where two or more distinct habitat types occur together in a patch too small to map separately.</div></div></div>
                 <div id="mosaic-table-wrap"></div>
               </div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="hab_area">⤢ Expand</button></div>
+            <div class="acc-footer"><button class="expand-btn" data-popout="hab_area">&#10530; Expand</button></div>
           </div>
         </div>
 
         <div class="acc-card" id="card-hab_lin">
-          <div class="acc-hdr"><div class="acc-dot" style="background:#7ab648"></div><div class="acc-name">Linear habitats</div><div class="acc-chev">▾</div></div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#7ab648"></div><div class="acc-name">Linear habitats</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-lin-total">—</div><div class="stat-lbl">Total features</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-lin-m">—</div><div class="stat-lbl">Total metres</div></div>
+                <div class="stat-chip"><div class="stat-val" id="stat-lin-total">&#8212;</div><div class="stat-lbl">Total features</div></div>
+                <div class="stat-chip"><div class="stat-val" id="stat-lin-m">&#8212;</div><div class="stat-lbl">Total metres</div></div>
               </div>
               <div class="plot-hdr"><div class="plot-title">Length by habitat type</div><div class="info-btn">i<div class="info-tip">Linear habitats include watercourses, ditches and woodland edges. Length calculated from mapped geometry.</div></div></div>
               <div id="linear-bars"></div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="hab_lin">⤢ Expand</button></div>
+            <div class="acc-footer"><button class="expand-btn" data-popout="hab_lin">&#10530; Expand</button></div>
           </div>
         </div>
 
         <div class="acc-card" id="card-birds">
-          <div class="acc-hdr">
-            <div class="acc-dot" style="background:#4a90d9"></div>
-            <img class="acc-hdr-icon" src="assets/icons/bird.png" alt=""/>
-            <div class="acc-name">Bird species</div><div class="acc-chev">▾</div>
-          </div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#4a90d9"></div><img class="acc-hdr-icon" src="assets/icons/bird.png" alt=""/><div class="acc-name">Bird species</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-bird-rec">—</div><div class="stat-lbl">Records</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-bird-spp">—</div><div class="stat-lbl">Species</div></div>
+                <div class="stat-chip clickable" id="chip-bird-rec" data-group="birds" data-pane="records">
+                  <div class="chip-info">i<div class="chip-tip">Total number of individual bird observation records across all survey visits. Click to view records chart.</div></div>
+                  <div class="stat-val" id="stat-bird-rec">&#8212;</div><div class="stat-lbl">Records</div>
+                </div>
+                <div class="stat-chip clickable" id="chip-bird-spp" data-group="birds" data-pane="records">
+                  <div class="chip-info">i<div class="chip-tip">Number of distinct bird species recorded on site during the survey period.</div></div>
+                  <div class="stat-val" id="stat-bird-spp">&#8212;</div><div class="stat-lbl">Species</div>
+                </div>
               </div>
               <div class="stat-row">
-                <div class="stat-chip" style="background:#fff7e6;border:1px solid #fde8c8"><div class="stat-val" style="color:#b8620a" id="stat-bird-breed">—</div><div class="stat-lbl">Confirmed breeding</div></div>
-                <div class="stat-chip" style="background:#fef2f2;border:1px solid #fdd"><div class="stat-val" style="color:#c0392b" id="stat-bird-redamber">—</div><div class="stat-lbl">Red / Amber listed</div></div>
-              </div>
-              <div class="plot-tabs">
-                <button class="plot-tab active" data-group="birds" data-pane="records">Records</button>
-                <button class="plot-tab" data-group="birds" data-pane="habitat">Per habitat</button>
-                <button class="plot-tab" data-group="birds" data-pane="breeding">Breeding</button>
-                <button class="plot-tab" data-group="birds" data-pane="redamber">Red/Amber</button>
+                <div class="stat-chip clickable" id="chip-bird-breed" data-group="birds" data-pane="breeding" style="background:#fff7e6;border:1px solid #fde8c8">
+                  <div class="chip-info" style="background:rgba(184,98,10,.15);color:#b8620a">i<div class="chip-tip">Species with confirmed breeding evidence on site &#8212; carrying food to nest, fledglings present, or confirmed nesting. Click to view.</div></div>
+                  <div class="stat-val" style="color:#b8620a" id="stat-bird-breed">&#8212;</div><div class="stat-lbl">Confirmed breeding</div>
+                </div>
+                <div class="stat-chip clickable" id="chip-bird-ra" data-group="birds" data-pane="redamber" style="background:#fef2f2;border:1px solid #fdd">
+                  <div class="chip-info" style="background:rgba(192,57,43,.15);color:#c0392b">i<div class="chip-tip">Species listed as Red or Amber on the Birds of Conservation Concern in Ireland (BoCCI) list. Red = highest conservation concern. Click to view.</div></div>
+                  <div class="stat-val" style="color:#c0392b" id="stat-bird-redamber">&#8212;</div><div class="stat-lbl">Red / Amber listed</div>
+                </div>
               </div>
               <div id="birds-records" class="plot-pane active">
-                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Number of individual point records per bird species recorded during the survey.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Number of individual point records per bird species. Click any row to highlight those records on the map.</div></div></div>
                 <div id="bird-records-bars"></div>
               </div>
               <div id="birds-habitat" class="plot-pane">
@@ -297,36 +332,37 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
                 <div id="bird-habitat-bars"></div>
               </div>
               <div id="birds-breeding" class="plot-pane">
-                <div class="plot-hdr"><div class="plot-title">Confirmed breeding species</div><div class="info-btn">i<div class="info-tip">Species with confirmed breeding evidence — carrying food to nest, fledglings present, or confirmed nesting.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Confirmed breeding species</div><div class="info-btn">i<div class="info-tip">Species with confirmed breeding evidence &#8212; carrying food to nest, fledglings present, or confirmed nesting. Click a tile to highlight on map.</div></div></div>
                 <div id="bird-breeding-tiles"></div>
               </div>
               <div id="birds-redamber" class="plot-pane">
-                <div class="plot-hdr"><div class="plot-title">Red and amber listed species</div><div class="info-btn">i<div class="info-tip">BoCCI lists species by conservation status. Red = highest concern, Amber = moderate concern.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Red and amber listed species</div><div class="info-btn">i<div class="info-tip">BoCCI lists species by conservation status. Red = highest concern, Amber = moderate concern. Click a tile to highlight on map.</div></div></div>
                 <div id="bird-redamber-tiles"></div>
               </div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="birds">⤢ Expand</button></div>
+            <div class="acc-footer">
+              <button class="plot-tab" data-group="birds" data-pane="habitat" style="margin-right:auto;font-size:9.5px">Per habitat &#9656;</button>
+              <button class="expand-btn" data-popout="birds">&#10530; Expand</button>
+            </div>
           </div>
         </div>
 
         <div class="acc-card" id="card-bats">
-          <div class="acc-hdr">
-            <div class="acc-dot" style="background:#9b59b6"></div>
-            <img class="acc-hdr-icon" src="assets/icons/bat_icon_256.png" alt=""/>
-            <div class="acc-name">Bat species</div><div class="acc-chev">▾</div>
-          </div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#9b59b6"></div><img class="acc-hdr-icon" src="assets/icons/bat_icon_256.png" alt=""/><div class="acc-name">Bat species</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-bat-rec">—</div><div class="stat-lbl">Records</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-bat-spp">—</div><div class="stat-lbl">Species</div></div>
-              </div>
-              <div class="plot-tabs">
-                <button class="plot-tab active" data-group="bats" data-pane="records">Records</button>
-                <button class="plot-tab" data-group="bats" data-pane="tiles">Species</button>
+                <div class="stat-chip clickable" id="chip-bat-rec" data-group="bats" data-pane="records">
+                  <div class="chip-info">i<div class="chip-tip">Total bat passes detected by acoustic survey. Click to view records chart.</div></div>
+                  <div class="stat-val" id="stat-bat-rec">&#8212;</div><div class="stat-lbl">Records</div>
+                </div>
+                <div class="stat-chip clickable" id="chip-bat-spp" data-group="bats" data-pane="tiles">
+                  <div class="chip-info">i<div class="chip-tip">Number of distinct bat species identified from acoustic recordings on site. Click to view species.</div></div>
+                  <div class="stat-val" id="stat-bat-spp">&#8212;</div><div class="stat-lbl">Species</div>
+                </div>
               </div>
               <div id="bats-records" class="plot-pane active">
-                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Bat records from acoustic detector surveys. Each detected pass counted as one record per species.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Bat passes per species. Click any row to highlight those locations on the map.</div></div></div>
                 <div id="bat-records-bars"></div>
               </div>
               <div id="bats-tiles" class="plot-pane">
@@ -334,55 +370,50 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
                 <div id="bat-species-tiles"></div>
               </div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="bats">⤢ Expand</button></div>
+            <div class="acc-footer"><button class="expand-btn" data-popout="bats">&#10530; Expand</button></div>
           </div>
         </div>
 
         <div class="acc-card" id="card-amph">
-          <div class="acc-hdr">
-            <div class="acc-dot" style="background:#16a085"></div>
-            <img class="acc-hdr-icon" src="assets/icons/amphibian_icon_256.png" alt=""/>
-            <div class="acc-name">Amphibians</div><div class="acc-chev">▾</div>
-          </div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#16a085"></div><img class="acc-hdr-icon" src="assets/icons/amphibian_icon_256.png" alt=""/><div class="acc-name">Amphibians</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-amph-rec">—</div><div class="stat-lbl">Records</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-amph-spp">—</div><div class="stat-lbl">Species</div></div>
-              </div>
-              <div class="plot-tabs">
-                <button class="plot-tab active" data-group="amph" data-pane="bars">Records</button>
-                <button class="plot-tab" data-group="amph" data-pane="list">Details</button>
+                <div class="stat-chip clickable" id="chip-amph-rec" data-group="amph" data-pane="bars">
+                  <div class="chip-info">i<div class="chip-tip">Total amphibian observations including adults, spawn and tadpoles. Click to view records chart.</div></div>
+                  <div class="stat-val" id="stat-amph-rec">&#8212;</div><div class="stat-lbl">Records</div>
+                </div>
+                <div class="stat-chip clickable" id="chip-amph-spp" data-group="amph" data-pane="list">
+                  <div class="chip-info">i<div class="chip-tip">Number of distinct amphibian species recorded on site. Click to view details.</div></div>
+                  <div class="stat-val" id="stat-amph-spp">&#8212;</div><div class="stat-lbl">Species</div>
+                </div>
               </div>
               <div id="amph-bars" class="plot-pane active">
-                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Amphibian records from field surveys including adult, spawn and tadpole observations.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Click any row to highlight those records on the map.</div></div></div>
                 <div id="amph-records-bars"></div>
               </div>
               <div id="amph-list" class="plot-pane"><div id="amph-records-list"></div></div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="amph">⤢ Expand</button></div>
+            <div class="acc-footer"><button class="expand-btn" data-popout="amph">&#10530; Expand</button></div>
           </div>
         </div>
 
         <div class="acc-card" id="card-inv">
-          <div class="acc-hdr">
-            <div class="acc-dot" style="background:#d35400"></div>
-            <img class="acc-hdr-icon" src="assets/icons/invertebrate_icon_256.png" alt=""/>
-            <div class="acc-name">Invertebrates</div><div class="acc-chev">▾</div>
-          </div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#d35400"></div><img class="acc-hdr-icon" src="assets/icons/invertebrate_icon_256.png" alt=""/><div class="acc-name">Invertebrates</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-inv-rec">—</div><div class="stat-lbl">Records</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-inv-spp">—</div><div class="stat-lbl">Species</div></div>
-              </div>
-              <div class="plot-tabs">
-                <button class="plot-tab active" data-group="inv" data-pane="bars">Records</button>
-                <button class="plot-tab" data-group="inv" data-pane="list">Details</button>
-                <button class="plot-tab" data-group="inv" data-pane="stages">Life stages</button>
+                <div class="stat-chip clickable" id="chip-inv-rec" data-group="inv" data-pane="bars">
+                  <div class="chip-info">i<div class="chip-tip">Total invertebrate observations, predominantly butterflies and moths. Click to view records chart.</div></div>
+                  <div class="stat-val" id="stat-inv-rec">&#8212;</div><div class="stat-lbl">Records</div>
+                </div>
+                <div class="stat-chip clickable" id="chip-inv-spp" data-group="inv" data-pane="list">
+                  <div class="chip-info">i<div class="chip-tip">Number of distinct invertebrate species identified on site. Click to view details.</div></div>
+                  <div class="stat-val" id="stat-inv-spp">&#8212;</div><div class="stat-lbl">Species</div>
+                </div>
               </div>
               <div id="inv-bars" class="plot-pane active">
-                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Invertebrate records from field surveys, predominantly butterflies and moths.</div></div></div>
+                <div class="plot-hdr"><div class="plot-title">Records by species</div><div class="info-btn">i<div class="info-tip">Click any row to highlight those records on the map.</div></div></div>
                 <div id="inv-records-bars"></div>
               </div>
               <div id="inv-list" class="plot-pane"><div id="inv-records-list"></div></div>
@@ -391,35 +422,34 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
                 <div id="inv-stage-grid"></div>
               </div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="inv">⤢ Expand</button></div>
+            <div class="acc-footer">
+              <button class="plot-tab" data-group="inv" data-pane="stages" style="margin-right:auto;font-size:9.5px">Life stages &#9656;</button>
+              <button class="expand-btn" data-popout="inv">&#10530; Expand</button>
+            </div>
           </div>
         </div>
 
         <div class="acc-card" id="card-trees">
-          <div class="acc-hdr">
-            <div class="acc-dot" style="background:#27ae60"></div>
-            <img class="acc-hdr-icon" src="assets/icons/plant.png" alt=""/>
-            <div class="acc-name">Tree planting</div><div class="acc-chev">▾</div>
-          </div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#27ae60"></div><img class="acc-hdr-icon" src="assets/icons/plant.png" alt=""/><div class="acc-name">Tree planting</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-tree-total">—</div><div class="stat-lbl">Trees planted</div></div>
-                <div class="stat-chip"><div class="stat-val" id="stat-tree-spp">—</div><div class="stat-lbl">Species</div></div>
+                <div class="stat-chip"><div class="stat-val" id="stat-tree-total">&#8212;</div><div class="stat-lbl">Trees planted</div></div>
+                <div class="stat-chip"><div class="stat-val" id="stat-tree-spp">&#8212;</div><div class="stat-lbl">Species</div></div>
               </div>
-              <div class="plot-hdr"><div class="plot-title">Species breakdown</div><div class="info-btn">i<div class="info-tip">Native tree species planted on site as part of the restoration programme.</div></div></div>
+              <div class="plot-hdr"><div class="plot-title">Species breakdown</div><div class="info-btn">i<div class="info-tip">Native tree species planted on site as part of the restoration programme, selected to enhance biodiversity and habitat connectivity.</div></div></div>
               <div style="position:relative;height:185px"><canvas id="tree-donut"></canvas></div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="trees">⤢ Expand</button></div>
+            <div class="acc-footer"><button class="expand-btn" data-popout="trees">&#10530; Expand</button></div>
           </div>
         </div>
 
         <div class="acc-card" id="card-cameras">
-          <div class="acc-hdr"><div class="acc-dot" style="background:#e74c3c"></div><div class="acc-name">Wildlife cameras</div><div class="acc-chev">▾</div></div>
+          <div class="acc-hdr"><div class="acc-dot" style="background:#e74c3c"></div><div class="acc-name">Wildlife cameras</div><div class="acc-chev">&#9660;</div></div>
           <div class="acc-body">
             <div class="acc-scroll">
               <div class="stat-row">
-                <div class="stat-chip"><div class="stat-val" id="stat-cam-total">—</div><div class="stat-lbl">Cameras</div></div>
+                <div class="stat-chip"><div class="stat-val" id="stat-cam-total">&#8212;</div><div class="stat-lbl">Cameras</div></div>
                 <div class="stat-chip"><div class="stat-val">11</div><div class="stat-lbl">Video clips</div></div>
               </div>
               <div class="plot-tabs">
@@ -432,7 +462,7 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
                 <div id="cam-species-bars"></div>
               </div>
             </div>
-            <div class="acc-footer"><button class="expand-btn" data-popout="cameras">⤢ Expand</button></div>
+            <div class="acc-footer"><button class="expand-btn" data-popout="cameras">&#10530; Expand</button></div>
           </div>
         </div>
 
@@ -442,20 +472,15 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
 </div>
 
 <div class="lightbox" id="lightbox">
-  <button class="lb-close" id="lbClose">×</button>
+  <button class="lb-close" id="lbClose">&#215;</button>
   <div class="lb-title" id="lbTitle"></div>
   <div class="lb-credit" id="lbCredit"></div>
   <img id="lbImg" src="" alt="" style="display:none"/>
   <video id="lbVideo" controls style="display:none"></video>
 </div>
-
 <div class="popout-overlay" id="popoutOverlay">
   <div class="popout-modal">
-    <div class="po-hdr">
-      <div id="po-dot" style="width:11px;height:11px;border-radius:3px;flex-shrink:0"></div>
-      <div class="po-title" id="po-title"></div>
-      <button class="po-close" id="poClose">×</button>
-    </div>
+    <div class="po-hdr"><div id="po-dot" style="width:11px;height:11px;border-radius:3px;flex-shrink:0"></div><div class="po-title" id="po-title"></div><button class="po-close" id="poClose">&#215;</button></div>
     <div class="po-body" id="po-body"></div>
   </div>
 </div>
@@ -465,229 +490,124 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
 <script>
 'use strict';
 
-// ============================================================
-// PHOTO LOOKUPS
-// ============================================================
+const FOSSITT_DESC = {
+  "WS1":"Scrub is made up of dense shrubs such as hawthorn, blackthorn, willow or gorse. It provides important shelter, nesting sites and food sources for birds, mammals and insects, making it a valuable habitat for biodiversity.",
+
+  "WD4":"Conifer plantation woodland consists of planted evergreen trees, typically grown for timber production. While generally less diverse than native woodland, these forests can still provide habitat for birds, mammals and woodland wildlife.",
+
+  "GS4":"Wet grassland occurs on poorly drained or seasonally waterlogged ground and is often characterised by rushes and moisture-loving plants. These areas are important for birds, amphibians, pollinators and other wildlife that depend on wet habitats.",
+
+  "GS3":"Dry-humid acid grassland develops on acidic soils and supports a range of grasses, wildflowers and insects. Although often overlooked, these grasslands can provide valuable habitat for biodiversity.",
+
+  "GS1":"Improved grassland is farmland that has been managed to increase grass production for grazing or silage. While it is important for agriculture, it generally supports fewer plant and animal species than semi-natural grasslands.",
+
+  "GS2":"Dry calcareous grassland develops on lime-rich soils and is often rich in wildflowers. These species-rich grasslands are among Ireland's most valuable habitats for pollinators and other wildlife.",
+
+  "HD1":"Dense bracken is dominated by tall bracken ferns and is commonly found on hillsides and rough ground. While extensive bracken can limit plant diversity, it can still provide cover and shelter for some wildlife species.",
+
+  "FW1":"Rivers and streams are important freshwater habitats that support fish, aquatic insects, birds and mammals such as otters. Healthy watercourses also play a key role in connecting habitats across the landscape.",
+
+  "FW4":"Drainage ditches are artificial or modified channels that carry water through the landscape. They can provide valuable habitat for aquatic plants, insects and amphibians, particularly where water quality is good.",
+
+  "WD1":"Broadleaved woodland is dominated by native trees such as oak, ash, birch and willow. These woodlands are among Ireland's richest habitats, supporting a wide variety of plants, birds, mammals and insects.",
+
+  "WL1":"Wet woodland occurs on waterlogged or seasonally flooded ground and is often dominated by alder or willow trees. It provides important habitat for birds, invertebrates and other wildlife associated with wet environments.",
+
+  "DEFAULT":"This habitat was mapped as part of the ecological survey using the Fossitt habitat classification system, which is widely used to describe and assess habitats in Ireland."
+};
 const BIRD_PICS={
-  "blackbird":         "Blackbird - Image - Saxifraga - Merel bij Garderen.jpg",
-  "blackcap":          "Blackcap - Image - Saxifraga - Mark Zekhuis.jpg",
-  "blue tit":          "Blue Tit - Image - Saxifraga.jpg",
-  "buzzard":           "Buzzard - image - saxifragia - theotherkev-buzzard-6980727.jpg",
-  "chaffinch":         "Chaffinch - image - Saxifraga-Piet Munsterman.jpg",
-  "chiffchaff":        "Chiffchaff - image - hapr80-bird-7897032.jpg",
-  "coal tit":          "Coal Tit - image - saxifragia - erik_karits-bird-8312424.jpg",
+  "blackbird":"Blackbird - Image - Saxifraga - Merel bij Garderen.jpg",
+  "blackcap":"Blackcap - Image - Saxifraga - Mark Zekhuis.jpg",
+  "blue tit":"Blue Tit - Image - Saxifraga.jpg",
+  "buzzard":"Buzzard - image - saxifragia - theotherkev-buzzard-6980727.jpg",
+  "chaffinch":"Chaffinch - image - Saxifraga-Piet Munsterman.jpg",
+  "chiffchaff":"Chiffchaff - image - hapr80-bird-7897032.jpg",
+  "coal tit":"Coal Tit - image - saxifragia - erik_karits-bird-8312424.jpg",
   "common whitethroat":"Common Whitethroat - Image - Saxifraga - Bart Vastenhouw.jpg",
-  "eurasian jay":      "Eurasian Jay - Image - Saxifraga.jpg",
-  "goldcrest":         "Goldcrest - Image - Saxifraga - Bart Vastenhouw.jpg",
-  "goldfinch":         "Goldfinch - Image - Saxifraga - Mark Zekhuis.jpg",
-  "great tit":         "Great Tit - image - saxifragia - jggrz-great-tit-7948318.jpg",
-  "hooded crow":       "Hooded Crow - image - saxifragia - Orna.jpg",
-  "jay":               "Jay - image - tomaszproszek-jay-548381.jpg",
-  "long-tailed tit":   "Long-Tailed Tit - image - theotherkev-long-tailed-tit-4769449.jpg",
-  "mistle thrush":     "Mistle Thrush - image - theotherkev-mistle-thrush-4743360 (1).jpg",
-  "red kite":          "Red Kite - Image - Saxifraga - Mark Zekhuis.jpg",
-  "robin":             "Robin - image - terbe_rezso-robin-9419575.jpg",
-  "siskin":            "Siskin - Image - Saxifraga - Theo Verstrael.jpg",
-  "snipe":             "Snipe - Image - Saxifraga - Luc Hoogenstein.jpg",
-  "song thrush":       "Song Thrush - image - theotherkev-thrush-5897868.jpg",
-  "sparrowhawk":       "Sparrowhark - image - josepmonter-sparrowhawk-5592388.jpg",
-  "swallow":           "Swallow - Image - Saxifraga.jpg",
-  "treecreeper":       "Treecreeper - Image - Saxifraga - Mark Zekhuis.jpg",
-  "willow warbler":    "Willow Warbler - Image - Saxifraga - Luc Hoogenstein.jpg",
-  "woodpigeon":        "Woodpigeon - image -Saxifraga-Rudmer Zwerver.jpg",
-  "wren":              "Wren - image - Saxifraga-Iztok Skornik.jpg",
-  "whitethroat":       "Whitethroat - image pevank01-warbler-5216084.jpg",
-  "dunnock":           "Dunnock - image - theotherkev-dunnock-on-a-fence-4857419.jpg",
-  "jackdaw":           "Jackdaw - image - inspiredimages-bird-445290.jpg"
+  "eurasian jay":"Eurasian Jay - Image - Saxifraga.jpg",
+  "goldcrest":"Goldcrest - Image - Saxifraga - Bart Vastenhouw.jpg",
+  "goldfinch":"Goldfinch - Image - Saxifraga - Mark Zekhuis.jpg",
+  "great tit":"Great Tit - image - saxifragia - jggrz-great-tit-7948318.jpg",
+  "hooded crow":"Hooded Crow - image - saxifragia - Orna.jpg",
+  "jay":"Jay - image - tomaszproszek-jay-548381.jpg",
+  "long-tailed tit":"Long-Tailed Tit - image - theotherkev-long-tailed-tit-4769449.jpg",
+  "mistle thrush":"Mistle Thrush - image - theotherkev-mistle-thrush-4743360 (1).jpg",
+  "red kite":"Red Kite - Image - Saxifraga - Mark Zekhuis.jpg",
+  "robin":"Robin - image - terbe_rezso-robin-9419575.jpg",
+  "siskin":"Siskin - Image - Saxifraga - Theo Verstrael.jpg",
+  "snipe":"Snipe - Image - Saxifraga - Luc Hoogenstein.jpg",
+  "song thrush":"Song Thrush - image - theotherkev-thrush-5897868.jpg",
+  "sparrowhawk":"Sparrowhark - image - josepmonter-sparrowhawk-5592388.jpg",
+  "swallow":"Swallow - Image - Saxifraga.jpg",
+  "treecreeper":"Treecreeper - Image - Saxifraga - Mark Zekhuis.jpg",
+  "willow warbler":"Willow Warbler - Image - Saxifraga - Luc Hoogenstein.jpg",
+  "woodpigeon":"Woodpigeon - image -Saxifraga-Rudmer Zwerver.jpg",
+  "wren":"Wren - image - Saxifraga-Iztok Skornik.jpg",
+  "whitethroat":"Whitethroat - image pevank01-warbler-5216084.jpg",
+  "dunnock":"Dunnock - image - theotherkev-dunnock-on-a-fence-4857419.jpg",
+  "jackdaw":"Jackdaw - image - inspiredimages-bird-445290.jpg"
 };
-const BAT_PICS={
-  "nyctalus leisleri":         "Stock-Nyctalus leisleri-Image-Saxifraga-Jeroen Willemsen.jpg",
-  "pipistrellus pipistrellus": "Stock-Pipistrellus pipistrellus-Saxifraga-Rudmer Zwerver.jpg",
-  "pipistrellus nathusii":     "Stock-Pipistrellus nathusii-Image-Saxifraga-Mark Zekhuis.jpg",
-  "pipistrellus pygmaeus":     "Stock-Pipistrellus pygmaeus-Image-Adria Baucells.jpg"
-};
-const AMPH_PICS={
-  "rana temporaria":"Stock-Rana temoraria-Image-Mike Brown.jpg",
-  "bufo bufo":      "12.08.2025-Bufo bufo.jpg"
-};
-const AMPH_DATE={
-  "01.08.2025_rana temporaria":"01.08.2025-Rana temporaria.jpg",
-  "12.02.2026_rana temporaria":"12.02.2026-Rana temporaria.jpg"
-};
-const INV_PICS={
-  "pararge aegeria":       [{stage:"Adult",       file:"Stock-Pararge aegeria-Image-Bob Eade.jpg"}],
-  "anthocharis cardamines":[{stage:"Adult Male",  file:"Stock-Anthocharis cardamines-Male-Image-Adam Gor.jpg"},
-                            {stage:"Adult Female",file:"Stock-Anthocharis cardamines-Female-Image-Tamas Nestor.jpg"}],
-  "pieris napi":           [{stage:"Adult",       file:"23.05.2025-Pieris napi.jpg"}],
-  "aphantopus hyperantus": [{stage:"Adult",       file:"24.06.2025-Aphantopus hyperantus.jpg"}],
-  "zygaena filipendulae":  [{stage:"Adult",       file:"04.06.2025-Zygaena filipendulae-Adult.jpg"},
-                            {stage:"Cocoon",      file:"23.05.2025-Zygaena filipendulae-Cocoon.jpg"}],
-  "tyria jacobaeae":       [{stage:"Caterpillar", file:"01.08.2025-Tyria jacobaeae-Caterpillar.jpg"}],
-  "aglais io":             [{stage:"Adult",       file:"Stock-Aglais io-Adult.jpg"},
-                            {stage:"Caterpillar", file:"24.06.2025-Aglais io-Caterpillar.jpg"}]
-};
+const BAT_PICS={"nyctalus leisleri":"Stock-Nyctalus leisleri-Image-Saxifraga-Jeroen Willemsen.jpg","pipistrellus pipistrellus":"Stock-Pipistrellus pipistrellus-Saxifraga-Rudmer Zwerver.jpg","pipistrellus nathusii":"Stock-Pipistrellus nathusii-Image-Saxifraga-Mark Zekhuis.jpg","pipistrellus pygmaeus":"Stock-Pipistrellus pygmaeus-Image-Adria Baucells.jpg"};
+const AMPH_PICS={"rana temporaria":"Stock-Rana temoraria-Image-Mike Brown.jpg","bufo bufo":"12.08.2025-Bufo bufo.jpg"};
+const AMPH_DATE={"01.08.2025_rana temporaria":"01.08.2025-Rana temporaria.jpg","12.02.2026_rana temporaria":"12.02.2026-Rana temporaria.jpg"};
+const INV_PICS={"pararge aegeria":[{stage:"Adult",file:"Stock-Pararge aegeria-Image-Bob Eade.jpg"}],"anthocharis cardamines":[{stage:"Adult Male",file:"Stock-Anthocharis cardamines-Male-Image-Adam Gor.jpg"},{stage:"Adult Female",file:"Stock-Anthocharis cardamines-Female-Image-Tamas Nestor.jpg"}],"pieris napi":[{stage:"Adult",file:"23.05.2025-Pieris napi.jpg"}],"aphantopus hyperantus":[{stage:"Adult",file:"24.06.2025-Aphantopus hyperantus.jpg"}],"zygaena filipendulae":[{stage:"Adult",file:"04.06.2025-Zygaena filipendulae-Adult.jpg"},{stage:"Cocoon",file:"23.05.2025-Zygaena filipendulae-Cocoon.jpg"}],"tyria jacobaeae":[{stage:"Caterpillar",file:"01.08.2025-Tyria jacobaeae-Caterpillar.jpg"}],"aglais io":[{stage:"Adult",file:"Stock-Aglais io-Adult.jpg"},{stage:"Caterpillar",file:"24.06.2025-Aglais io-Caterpillar.jpg"}]};
 
-function bP(name){ const f=BIRD_PICS[(name||"").toLowerCase()]; return f?("assets/bird-pics/"+f):null; }
-function batP(sci){ const f=BAT_PICS[(sci||"").toLowerCase()]; return f?("assets/bat-pics/"+f):null; }
-function aP(date,sci){
-  const k=`${date}_${(sci||"").toLowerCase()}`;
-  const d=AMPH_DATE[k]; if(d) return "assets/amphibian-pics/"+d;
-  const s=AMPH_PICS[(sci||"").toLowerCase()]; return s?("assets/amphibian-pics/"+s):null;
-}
-function iP(sci,notes){
-  const st=INV_PICS[(sci||"").toLowerCase()]; if(!st||!st.length) return null;
-  if(st.length===1) return "assets/invertebrate-pics/"+st[0].file;
-  const n=(notes||"").toLowerCase();
-  const m=st.find(s=>n.includes(s.stage.toLowerCase()));
-  return "assets/invertebrate-pics/"+(m||st[0]).file;
-}
-function credit(path){
-  if(!path) return "";
-  const m=path.match(/[-–]\s*([A-Z][a-zA-Z ]+)\.(jpg|png)/i);
-  return m?"© "+m[1]:"";
-}
+function bP(n){const f=BIRD_PICS[(n||"").toLowerCase()];return f?"assets/bird-pics/"+f:null;}
+function batP(s){const f=BAT_PICS[(s||"").toLowerCase()];return f?"assets/bat-pics/"+f:null;}
+function aP(date,sci){const k=date+"_"+(sci||"").toLowerCase();const d=AMPH_DATE[k];if(d)return"assets/amphibian-pics/"+d;const s=AMPH_PICS[(sci||"").toLowerCase()];return s?"assets/amphibian-pics/"+s:null;}
+function iP(sci,notes){const st=INV_PICS[(sci||"").toLowerCase()];if(!st||!st.length)return null;if(st.length===1)return"assets/invertebrate-pics/"+st[0].file;const n=(notes||"").toLowerCase();const m=st.find(s=>n.includes(s.stage.toLowerCase()));return"assets/invertebrate-pics/"+(m||st[0]).file;}
+function cred(path){if(!path)return"";const m=path.match(/[-\u2013]\s*([A-Z][a-zA-Z ]+)\.(jpg|png)/i);return m?"(c) "+m[1]:"";}
 
-// ============================================================
-// FIELD ACCESSORS
-// ============================================================
-const F={
-  btoName: p=>p["BTO.Name"]  ||p["BTO_Name"]  ||"",
-  btoCode: p=>p["BTO.Code"]  ||p["BTO_Code"]  ||"",
-  bocci:   p=>p["BoCCI.Stat"]||p["BoCCI_Stat"]||"",
-  comNam:  p=>p["Common.Nam"]||p["Common_Nam"] ||"",
-  species: p=>p.Species||"",
-  date:    p=>p.Date||"—",
-  rec:     p=>p.Recorder||p.Surveyor||"—",
-  notes:   p=>p.Notes||"",
-  hab:     p=>p.Habitat||"—",
-  act:     p=>p.Activity||"—",
-  breed:   p=>p["Breeding.s"]||p.Breeding_s||"—",
-  cam:     p=>p["Camera.Nam"]||p.Camera_Nam||p.Camera_Name||""
-};
+const F={btoName:p=>p["BTO.Name"]||p["BTO_Name"]||"",btoCode:p=>p["BTO.Code"]||p["BTO_Code"]||"",bocci:p=>p["BoCCI.Stat"]||p["BoCCI_Stat"]||"",comNam:p=>p["Common.Nam"]||p["Common_Nam"]||"",species:p=>p.Species||"",date:p=>p.Date||"",rec:p=>p.Recorder||p.Surveyor||"",notes:p=>p.Notes||"",hab:p=>p.Habitat||"",act:p=>p.Activity||"",breed:p=>p["Breeding.s"]||p.Breeding_s||"",cam:p=>p["Camera.Nam"]||p.Camera_Nam||p.Camera_Name||""};
 
-// ============================================================
-// LIGHTBOX
-// ============================================================
-function lb(type,src,title,cred){
+function lb(type,src,title,cr){
   document.getElementById("lbTitle").textContent=title||"";
-  document.getElementById("lbCredit").textContent=cred||"";
-  const img=document.getElementById("lbImg"), vid=document.getElementById("lbVideo");
-  if(type==="video"){ img.style.display="none"; vid.style.display="block"; vid.src=src; vid.play(); }
-  else { vid.pause(); vid.src=""; vid.style.display="none"; img.style.display="block"; img.src=src; }
+  document.getElementById("lbCredit").textContent=cr||"";
+  const img=document.getElementById("lbImg"),vid=document.getElementById("lbVideo");
+  if(type==="video"){img.style.display="none";vid.style.display="block";vid.src=src;vid.play();}
+  else{vid.pause();vid.src="";vid.style.display="none";img.style.display="block";img.src=src;}
   document.getElementById("lightbox").classList.add("open");
 }
-function closeLb(){
-  const vid=document.getElementById("lbVideo"); vid.pause(); vid.src="";
-  document.getElementById("lbImg").src="";
-  document.getElementById("lightbox").classList.remove("open");
-}
+function closeLb(){const vid=document.getElementById("lbVideo");vid.pause();vid.src="";document.getElementById("lbImg").src="";document.getElementById("lightbox").classList.remove("open");}
 document.getElementById("lbClose").onclick=closeLb;
-document.getElementById("lightbox").addEventListener("click",e=>{ if(e.target.id==="lightbox") closeLb(); });
+document.getElementById("lightbox").addEventListener("click",e=>{if(e.target.id==="lightbox")closeLb();});
 
-// ============================================================
-// CAMERA DATA
-// ============================================================
-const CAM={
-  "Cam 1":[
-    {file:"Cam 1 - Badger.MP4",      label:"Badger"},
-    {file:"Cam 1 - Badger 2.MP4",    label:"Badger (2)"},
-    {file:"Cam 1 - Deer.MP4",        label:"Sika Deer"},
-    {file:"Cam 1 - Deer 2.MP4",      label:"Sika Deer (2)"},
-    {file:"Cam 1 - Fox.MP4",         label:"Red Fox"},
-    {file:"Cam 1 - Fox 2.MP4",       label:"Red Fox (2)"},
-    {file:"Cam 1 - Robin.MP4",       label:"Robin"},
-    {file:"Cam 1 - Sparrowhawk.MP4", label:"Sparrowhawk"}
-  ],
-  "Cam 2":[
-    {file:"Cam 2 - Deer.MP4",     label:"Sika Deer"},
-    {file:"Cam 2 - Deer 2.MP4",   label:"Sika Deer (2)"},
-    {file:"Cam 2 - Pheasant.MP4", label:"Pheasant"}
-  ],
-  "Cam 3":[{file:"Cam 3 - Little Dargle Stream.MP4",label:"Little Dargle Stream"}]
-};
+const CAM={"Cam 1":[{file:"Cam 1 - Badger.MP4",label:"Badger"},{file:"Cam 1 - Badger 2.MP4",label:"Badger (2)"},{file:"Cam 1 - Deer.MP4",label:"Sika Deer"},{file:"Cam 1 - Deer 2.MP4",label:"Sika Deer (2)"},{file:"Cam 1 - Fox.MP4",label:"Red Fox"},{file:"Cam 1 - Fox 2.MP4",label:"Red Fox (2)"},{file:"Cam 1 - Robin.MP4",label:"Robin"},{file:"Cam 1 - Sparrowhawk.MP4",label:"Sparrowhawk"}],"Cam 2":[{file:"Cam 2 - Deer.MP4",label:"Sika Deer"},{file:"Cam 2 - Deer 2.MP4",label:"Sika Deer (2)"},{file:"Cam 2 - Pheasant.MP4",label:"Pheasant"}],"Cam 3":[{file:"Cam 3 - Little Dargle Stream.MP4",label:"Little Dargle Stream"}]};
 
-// ============================================================
-// MAP ICON — white circle with natural-colour PNG, coloured ring
-// ============================================================
-function mkIcon(iconPath, ringColor, size=30){
-  const inner=Math.round(size*0.58);
-  return L.divIcon({
-    className:"",
-    html:`<div style="width:${size}px;height:${size}px;border-radius:50%;background:#ffffff;border:2.5px solid ${ringColor};display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.28);overflow:hidden"><img src="${iconPath}" style="width:${inner}px;height:${inner}px;object-fit:contain;display:block"/></div>`,
-    iconSize:[size,size],iconAnchor:[size/2,size/2]
-  });
-}
-function mkIconHL(iconPath, ringColor, size=38){
-  const inner=Math.round(size*0.55);
-  return L.divIcon({
-    className:"",
-    html:`<div style="width:${size}px;height:${size}px;border-radius:50%;background:#ffffff;border:3px solid ${ringColor};display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 5px rgba(57,198,188,.3),0 2px 10px rgba(0,0,0,.3);overflow:hidden"><img src="${iconPath}" style="width:${inner}px;height:${inner}px;object-fit:contain;display:block"/></div>`,
-    iconSize:[size,size],iconAnchor:[size/2,size/2]
-  });
-}
+function mkIcon(p,ring,sz){sz=sz||30;const inner=Math.round(sz*0.58);return L.divIcon({className:"",html:'<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:#fff;border:2.5px solid '+ring+';display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.28);overflow:hidden"><img src="'+p+'" style="width:'+inner+'px;height:'+inner+'px;object-fit:contain;display:block"/></div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});}
+function mkHL(p,sz){sz=sz||38;const inner=Math.round(sz*0.55);return L.divIcon({className:"",html:'<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:#fff;border:3px solid #f5a623;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 5px rgba(245,166,35,.35),0 2px 10px rgba(0,0,0,.3);overflow:hidden"><img src="'+p+'" style="width:'+inner+'px;height:'+inner+'px;object-fit:contain;display:block"/></div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});}
 
-// ============================================================
-// BASEMAPS + MAP
-// Centre from first GeoJSON coordinate: [-6.2496, 53.2530]
-// ============================================================
-const basemaps={
-  osm:       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap contributors",maxZoom:20}),
-  satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{attribution:"© Esri, Maxar, Earthstar Geographics",maxZoom:20}),
-  topo:      L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{attribution:"© OpenTopoMap contributors",maxZoom:17})
-};
+const basemaps={osm:L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"(c) OpenStreetMap contributors",maxZoom:20}),satellite:L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{attribution:"(c) Esri, Maxar, Earthstar Geographics",maxZoom:20}),topo:L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{attribution:"(c) OpenTopoMap contributors",maxZoom:17})};
 const map=L.map("map",{zoomControl:true,layers:[basemaps.satellite]}).setView([53.2530,-6.2496],16);
 let curBM="satellite";
 map.on("zoomend",()=>{document.getElementById("zoomBadge").textContent="zoom: "+map.getZoom();});
-document.querySelectorAll(".bm-btn").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const bm=btn.dataset.bm; if(bm===curBM) return;
-    map.removeLayer(basemaps[curBM]); map.addLayer(basemaps[bm]); basemaps[bm].bringToBack();
-    curBM=bm;
-    document.querySelectorAll(".bm-btn").forEach(b=>b.classList.remove("active")); btn.classList.add("active");
-    document.getElementById("basemap-pill").textContent=bm==="osm"?"Street":bm==="satellite"?"Satellite":"Topo";
-  });
-});
+document.querySelectorAll(".bm-btn").forEach(btn=>{btn.addEventListener("click",()=>{const bm=btn.dataset.bm;if(bm===curBM)return;map.removeLayer(basemaps[curBM]);map.addLayer(basemaps[bm]);basemaps[bm].bringToBack();curBM=bm;document.querySelectorAll(".bm-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("basemap-pill").textContent=bm==="osm"?"Street":bm==="satellite"?"Satellite":"Topo";});});
 
-// ============================================================
-// COLOURS
-// ============================================================
 const FC={WD4:"#5a7a3a",WD1:"#2d5c2a",WD2:"#3a6e30",WD3:"#4a7835",WS1:"#7ab648",WS2:"#8fc455",GS1:"#c8e06a",GS3:"#b8d44a",GS4:"#9ec830",GS2:"#d4e880",HD1:"#c8a040",FW1:"#3a6aad",FW4:"#5580c0",WL1:"#4a9060",DEFAULT:"#8aaa6a"};
 const TC={Alder:"#2d6a4f",Birch:"#74c69d",Holly:"#1b4332",Oak:"#40916c",Rowan:"#95d5b2",Willow:"#52b788"};
 
-// ============================================================
-// POPUP HELPER
-// ============================================================
-function popup(picPath, title, rows, note){
-  const safe=(s)=>(s||"").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-  const imgHtml=picPath
-    ?`<img class="mp-img" src="${picPath}" alt="${safe(title)}" onclick="lb('image','${safe(picPath)}','${safe(title)}','${safe(credit(picPath))}')" onerror="this.style.display='none'"/>`
-    :"";
-  const trs=rows.filter(([,v])=>v&&v!=="—").map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join("");
-  const noteHtml=note&&note!=="-"?`<div class="mp-note">${note}</div>`:"";
-  return `<div class="mp">${imgHtml}<div class="mp-body"><div class="mp-title">${title}</div><table>${trs}</table>${noteHtml}</div></div>`;
+function popup(pic,title,rows,note){
+  const safe=s=>(s||"").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  const img=pic?'<img class="mp-img" src="'+pic+'" alt="'+safe(title)+'" onclick="lb(\'image\',\''+safe(pic)+'\',\''+safe(title)+'\',\''+safe(cred(pic))+'\')" onerror="this.style.display=\'none\'"/>':"";
+  const trs=rows.filter(([,v])=>v&&v!=="").map(([k,v])=>"<tr><td>"+k+"</td><td>"+v+"</td></tr>").join("");
+  const noteHtml=note&&note!=="-"?'<div class="mp-note">'+note+"</div>":"";
+  return '<div class="mp">'+img+'<div class="mp-body"><div class="mp-title">'+title+"</div><table>"+trs+"</table>"+noteHtml+"</div></div>";
 }
 
-// ============================================================
-// MAP LAYERS
-// ============================================================
 const ML={};
 const LV={study:true,hab_area:true,hab_lin:true,birds:true,bats:false,amph:false,inv:false,trees:false,cameras:true};
 
 ML.study=L.geoJSON(GJ_STUDY,{style:{color:"#39c6bc",weight:2.5,fillColor:"#176560",fillOpacity:0.06,dashArray:"6,4"}}).addTo(map);
-
-// Fit to study area bounds after loading
-ML.study.on("add",()=>{
-  try{ const b=ML.study.getBounds(); if(b.isValid()) map.fitBounds(b,{padding:[40,40]}); }catch(e){}
-});
+ML.study.on("add",()=>{try{const b=ML.study.getBounds();if(b.isValid())map.fitBounds(b,{padding:[40,40]});}catch(e){}});
 
 ML.hab_area=L.geoJSON(GJ_HAB_AREA,{
   style:f=>{const c=FC[f.properties.Fossitt_primary||"DEFAULT"]||FC.DEFAULT;return{color:c,weight:1,fillColor:c,fillOpacity:0.55};},
   onEachFeature:(f,l)=>{
-    const p=f.properties, area=p["Area__ha_"]??p["Area..ha."]??null;
-    l.bindPopup(popup(null,p.FossLayer||p.Fossitt||"Habitat",[
-      ["Code",p.Fossitt||"—"],["Area",area?(+area).toFixed(3)+" ha":"—"],
-      ["Mosaic",p.is_mosaic?"Yes — "+p.mosaic_codes:"No"]
-    ],null));
+    const p=f.properties,area=p["Area__ha_"]||p["Area..ha."]||null;
+    const code=p.Fossitt_primary||p.Fossitt||"";
+    l.bindTooltip("<strong>"+(p.FossLayer||code||"Habitat")+"</strong>",{sticky:true,direction:"top"});
+    const desc=(FOSSITT_DESC[code]||FOSSITT_DESC["DEFAULT"]);
+    l.bindPopup(popup(null,p.FossLayer||p.Fossitt||"Habitat",[["Code",p.Fossitt||""],["Area",area?(+area).toFixed(3)+" ha":""],["Mosaic",p.is_mosaic?"Yes - "+p.mosaic_codes:"No"]],desc));
   }
 }).addTo(map);
 
@@ -695,51 +615,52 @@ ML.hab_lin=L.geoJSON(GJ_HAB_LIN,{
   style:f=>{const l=f.properties.FossLayer||"";let c="#5580c0";if(l.startsWith("WL"))c="#4a9060";if(l.startsWith("FW1"))c="#3a6aad";return{color:c,weight:2.5,opacity:0.85};},
   onEachFeature:(f,l)=>{
     const p=f.properties;
-    l.bindPopup(popup(null,p.FossLayer||"Linear habitat",[["Length",p.length_m?Math.round(p.length_m)+" m":"—"]],null));
+    l.bindTooltip("<strong>"+(p.FossLayer||"Linear habitat")+"</strong>",{sticky:true,direction:"top"});
+    l.bindPopup(popup(null,p.FossLayer||"Linear habitat",[["Length",p.length_m?Math.round(p.length_m)+" m":""]],null));
   }
 }).addTo(map);
 
 ML.birds=L.geoJSON(GJ_BIRDS,{
   pointToLayer:(f,ll)=>L.marker(ll,{icon:mkIcon("assets/icons/bird.png","#4a90d9",30)}),
   onEachFeature:(f,l)=>{
-    const p=f.properties, name=F.btoName(p)||"Bird";
-    const bocci=F.bocci(p), bc=bocci==="Red"?"#c0392b":bocci==="Amber"?"#e67e22":"#2ecc71";
+    const p=f.properties,name=F.btoName(p)||"Bird";
+    const bocci=F.bocci(p),bc=bocci==="Red"?"#c0392b":bocci==="Amber"?"#e67e22":"#2ecc71";
     const pic=bP(name);
-    l.bindPopup(popup(pic,name,[
-      ["Date",F.date(p)],["BTO code",F.btoCode(p)||"—"],["Activity",F.act(p)],
-      ["Breeding",F.breed(p)],["Habitat",F.hab(p)],["Recorder",F.rec(p)],
-      ["BoCCI",`<span style="color:${bc};font-weight:700">${bocci||"—"}</span>`]
-    ],F.notes(p)&&F.notes(p)!=="-"?F.notes(p):null),{maxWidth:290});
+    l.bindTooltip("<strong>"+name+"</strong><br/><span style='opacity:.75'>"+(bocci||"Green")+"</span>",{direction:"top"});
+    l.bindPopup(popup(pic,name,[["Date",F.date(p)],["BTO code",F.btoCode(p)],["Activity",F.act(p)],["Breeding",F.breed(p)],["Habitat",F.hab(p)],["Recorder",F.rec(p)],["BoCCI",'<span style="color:'+bc+';font-weight:700">'+(bocci||"")+"</span>"]],F.notes(p)&&F.notes(p)!=="-"?F.notes(p):null),{maxWidth:290});
   }
 }).addTo(map);
 
 ML.bats=L.geoJSON(GJ_BATS,{
   pointToLayer:(f,ll)=>L.marker(ll,{icon:mkIcon("assets/icons/bat_icon_256.png","#9b59b6",30)}),
   onEachFeature:(f,l)=>{
-    const p=f.properties, sci=F.species(p), name=F.comNam(p)||sci||"Bat";
-    l.bindPopup(popup(batP(sci),name,[["Species",sci?`<i>${sci}</i>`:"—"],["Date",F.date(p)],["Recorder",F.rec(p)]],null),{maxWidth:290});
+    const p=f.properties,sci=F.species(p),name=F.comNam(p)||sci||"Bat";
+    l.bindTooltip("<strong>"+name+"</strong><br/><span style='opacity:.75;font-style:italic'>"+sci+"</span>",{direction:"top"});
+    l.bindPopup(popup(batP(sci),name,[["Species",sci?"<i>"+sci+"</i>":""],["Date",F.date(p)],["Recorder",F.rec(p)]],null),{maxWidth:290});
   }
 });
 
 ML.amph=L.geoJSON(GJ_AMPH,{
   pointToLayer:(f,ll)=>L.marker(ll,{icon:mkIcon("assets/icons/amphibian_icon_256.png","#16a085",30)}),
   onEachFeature:(f,l)=>{
-    const p=f.properties, sci=F.species(p), name=F.comNam(p)||sci||"Amphibian";
-    l.bindPopup(popup(aP(F.date(p),sci),name,[["Species",sci?`<i>${sci}</i>`:"—"],["Date",F.date(p)],["Notes",p.Notes||"—"],["Recorder",F.rec(p)]],null),{maxWidth:290});
+    const p=f.properties,sci=F.species(p),name=F.comNam(p)||sci||"Amphibian";
+    l.bindTooltip("<strong>"+name+"</strong>",{direction:"top"});
+    l.bindPopup(popup(aP(F.date(p),sci),name,[["Species",sci?"<i>"+sci+"</i>":""],["Date",F.date(p)],["Notes",p.Notes||""],["Recorder",F.rec(p)]],null),{maxWidth:290});
   }
 });
 
 ML.inv=L.geoJSON(GJ_INV,{
   pointToLayer:(f,ll)=>L.marker(ll,{icon:mkIcon("assets/icons/invertebrate_icon_256.png","#d35400",30)}),
   onEachFeature:(f,l)=>{
-    const p=f.properties, sci=F.species(p), name=F.comNam(p)||sci||"Invertebrate";
-    l.bindPopup(popup(iP(sci,p.Notes),name,[["Species",sci?`<i>${sci}</i>`:"—"],["Date",F.date(p)],["Notes",p.Notes||"—"],["Recorder",F.rec(p)]],null),{maxWidth:290});
+    const p=f.properties,sci=F.species(p),name=F.comNam(p)||sci||"Invertebrate";
+    l.bindTooltip("<strong>"+name+"</strong>",{direction:"top"});
+    l.bindPopup(popup(iP(sci,p.Notes),name,[["Species",sci?"<i>"+sci+"</i>":""],["Date",F.date(p)],["Notes",p.Notes||""],["Recorder",F.rec(p)]],null),{maxWidth:290});
   }
 });
 
 ML.trees=L.geoJSON(GJ_TREES,{
   pointToLayer:(f,ll)=>L.marker(ll,{icon:mkIcon("assets/icons/plant.png",TC[f.properties.Species]||"#27ae60",26)}),
-  onEachFeature:(f,l)=>{ l.bindPopup(popup(null,f.properties.Species||"Tree",[],null)); }
+  onEachFeature:(f,l)=>{l.bindTooltip("<strong>"+(f.properties.Species||"Tree")+"</strong>",{direction:"top"});l.bindPopup(popup(null,f.properties.Species||"Tree",[],null));}
 });
 
 ML.cameras=L.geoJSON(GJ_CAMERAS,{
@@ -747,276 +668,350 @@ ML.cameras=L.geoJSON(GJ_CAMERAS,{
   onEachFeature:(f,l)=>{
     const camName=F.cam(f.properties)||"Camera";
     const vids=CAM[camName]||[];
-    const rows=vids.map(v=>`<div class="mp-vid-row" onclick="lb('video','assets/videos/${v.file}','${v.label} — ${camName}','')"><div class="mp-vid-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>${v.label}</div>`).join("");
-    l.bindPopup(`<div class="mp"><div class="mp-body"><div class="mp-title">${camName}</div></div><div class="mp-videos">${rows}</div></div>`,{maxWidth:260});
+    l.bindTooltip("<strong>"+camName+"</strong><br/><span style='opacity:.75'>"+vids.length+" clips</span>",{direction:"top"});
+    const rows=vids.map(v=>'<div class="mp-vid-row" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+camName+'\',\'\')"><div class="mp-vid-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("");
+    l.bindPopup('<div class="mp"><div class="mp-body"><div class="mp-title">'+camName+"</div></div>"+'<div class="mp-videos">'+rows+"</div></div>",{maxWidth:260});
   }
 }).addTo(map);
 
-// ============================================================
-// LAYER TOGGLES
-// ============================================================
-document.querySelectorAll(".lp-row").forEach(row=>{
-  row.addEventListener("click",()=>{
-    const id=row.dataset.layer, tog=document.getElementById("tog-"+id), card=document.getElementById("card-"+id);
-    LV[id]=!LV[id];
-    if(LV[id]){ tog.classList.add("on"); if(ML[id]) map.addLayer(ML[id]); if(card) card.classList.remove("inactive"); }
-    else{ tog.classList.remove("on"); if(ML[id]) map.removeLayer(ML[id]); if(card) card.classList.add("inactive"); }
+document.querySelectorAll(".lp-row").forEach(row=>{row.addEventListener("click",()=>{const id=row.dataset.layer,tog=document.getElementById("tog-"+id),card=document.getElementById("card-"+id);LV[id]=!LV[id];if(LV[id]){tog.classList.add("on");if(ML[id])map.addLayer(ML[id]);if(card)card.classList.remove("inactive");}else{tog.classList.remove("on");if(ML[id])map.removeLayer(ML[id]);if(card)card.classList.add("inactive");}});});
+
+document.querySelectorAll(".acc-hdr").forEach(hdr=>{hdr.addEventListener("click",()=>{const card=hdr.closest(".acc-card"),isOpen=card.classList.contains("open");document.querySelectorAll(".acc-card").forEach(c=>c.classList.remove("open"));if(!isOpen)card.classList.add("open");});});
+
+// CHIP TAB SWITCHING
+document.querySelectorAll(".stat-chip.clickable").forEach(chip=>{
+  chip.addEventListener("click",e=>{
+    if(e.target.closest(".chip-info"))return;
+    const group=chip.dataset.group,pane=chip.dataset.pane;
+    if(!group||!pane)return;
+    const scroll=chip.closest(".acc-scroll");
+    // mark active chip
+    scroll.querySelectorAll('.stat-chip.clickable[data-group="'+group+'"]').forEach(c=>c.classList.remove("chip-active"));
+    chip.classList.add("chip-active");
+    // switch panes
+    scroll.querySelectorAll(".plot-pane").forEach(p=>p.classList.remove("active"));
+    const t=document.getElementById(group+"-"+pane);if(t)t.classList.add("active");
   });
 });
 
-// ============================================================
-// ACCORDION — one open at a time
-// ============================================================
-document.querySelectorAll(".acc-hdr").forEach(hdr=>{
-  hdr.addEventListener("click",()=>{
-    const card=hdr.closest(".acc-card"), isOpen=card.classList.contains("open");
-    document.querySelectorAll(".acc-card").forEach(c=>c.classList.remove("open"));
-    if(!isOpen) card.classList.add("open");
+// FOOTER PLOT TABS
+document.querySelectorAll(".acc-footer .plot-tab").forEach(btn=>{
+  btn.addEventListener("click",e=>{
+    e.stopPropagation();
+    const group=btn.dataset.group,pane=btn.dataset.pane;
+    const body=btn.closest(".acc-body");
+    body.querySelectorAll(".plot-pane").forEach(p=>p.classList.remove("active"));
+    const t=document.getElementById(group+"-"+pane);if(t)t.classList.add("active");
+    // deactivate all chips and activate none (neutral state)
+    body.querySelectorAll('.stat-chip.clickable[data-group="'+group+'"]').forEach(c=>c.classList.remove("chip-active"));
   });
 });
 
-// ============================================================
-// TABS
-// ============================================================
-document.querySelectorAll(".plot-tab").forEach(btn=>{
+// CAMERA TABS
+document.querySelectorAll(".plot-tabs .plot-tab").forEach(btn=>{
   btn.addEventListener("click",()=>{
-    const group=btn.dataset.group, pane=btn.dataset.pane;
-    const scroll=btn.closest(".acc-scroll")||btn.closest(".po-body");
+    const group=btn.dataset.group,pane=btn.dataset.pane;
+    const scroll=btn.closest(".acc-scroll");
     scroll.querySelectorAll(".plot-tab").forEach(t=>t.classList.remove("active"));
     scroll.querySelectorAll(".plot-pane").forEach(p=>p.classList.remove("active"));
     btn.classList.add("active");
-    const t=document.getElementById(`${group}-${pane}`); if(t) t.classList.add("active");
+    const t=document.getElementById(group+"-"+pane);if(t)t.classList.add("active");
   });
 });
 
-// ============================================================
-// MINI BAR
-// ============================================================
-function mBar(id,data,color,unit=""){
-  const el=document.getElementById(id); if(!el||!data||!data.length) return;
-  const max=Math.max(...data.map(d=>+d.val||0));
-  el.innerHTML=data.map(d=>`<div class="mini-bar-row">
-    <div class="mini-bar-label" title="${d.label}">${d.label}</div>
-    <div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${max?(+d.val/max*100):0}%;background:${color}"></div></div>
-    <div class="mini-bar-val">${d.val}${unit}</div>
-  </div>`).join("");
+// HIGHLIGHT FUNCTIONS
+let curHL = {
+  layerKey: null,
+  iconPath: null,
+  ring: null,
+  timer: null
+};
+
+function resetHL(){
+  if(!curHL.layerKey || !ML[curHL.layerKey]) return;
+
+  ML[curHL.layerKey].eachLayer(l => {
+    if(l.setIcon){
+      l.setIcon(mkIcon(curHL.iconPath, curHL.ring, 30));
+    }
+  });
+
+  curHL.layerKey = null;
+  curHL.iconPath = null;
+  curHL.ring = null;
+
+  clearTimeout(curHL.timer);
+  curHL.timer = null;
 }
 
-// MOSAIC NORMALISE
-function normM(code){ if(!code) return code; return code.split(/\s*\/\s*/).map(s=>s.trim()).sort().join(" / "); }
+function hlSpecies(layerKey, iconPath, ring, matchFn){
+  // clear any previous highlight first
+  resetHL();
 
-// BIRD TILE HELPER
+  // make sure layer is visible
+  if(!LV[layerKey]){
+    map.addLayer(ML[layerKey]);
+
+    const tog = document.getElementById("tog-" + layerKey);
+    if(tog) tog.classList.add("on");
+
+    LV[layerKey] = true;
+
+    const card = document.getElementById("card-" + layerKey);
+    if(card) card.classList.remove("inactive");
+  }
+
+  // save current highlight info
+  curHL.layerKey = layerKey;
+  curHL.iconPath = iconPath;
+  curHL.ring = ring;
+
+  // highlight ALL matching records
+  ML[layerKey].eachLayer(l => {
+    const p = l.feature?.properties || {};
+    const match = matchFn(p);
+
+    if(l.setIcon){
+      l.setIcon(match ? mkHL(iconPath) : mkIcon(iconPath, ring, 30));
+    }
+
+    if(match && l.bringToFront){
+      l.bringToFront();
+    }
+  });
+
+  // auto turn off after 1 second
+  clearTimeout(curHL.timer);
+  curHL.timer = setTimeout(() => {
+    resetHL();
+  }, 1000);
+}
+
+function highlightBird(name){
+  hlSpecies(
+    "birds",
+    "assets/icons/bird.png",
+    "#4a90d9",
+    p => F.btoName(p) === name
+  );
+}
+
+function highlightBat(name){
+  hlSpecies(
+    "bats",
+    "assets/icons/bat_icon_256.png",
+    "#9b59b6",
+    p => F.comNam(p) === name || F.species(p) === name
+  );
+}
+
+function highlightAmph(name){
+  hlSpecies(
+    "amph",
+    "assets/icons/amphibian_icon_256.png",
+    "#16a085",
+    p => F.comNam(p) === name || F.species(p) === name
+  );
+}
+
+function highlightInv(name){
+  hlSpecies(
+    "inv",
+    "assets/icons/invertebrate_icon_256.png",
+    "#d35400",
+    p => F.comNam(p) === name || F.species(p) === name
+  );
+}
+
+
+function mBar(id, data, color, unit, onClickFn){
+  const el = document.getElementById(id);
+  if(!el || !data || !data.length) return;
+
+  const max = Math.max(...data.map(d => +(d.val) || 0));
+
+  el.innerHTML = data.map(d => {
+    const cls = "mini-bar-row" + (onClickFn ? " clickable-row" : "");
+    const title = onClickFn
+      ? 'title="' + d.label + ' - click to highlight on map"'
+      : 'title="' + d.label + '"';
+
+    return `
+      <div class="${cls}" ${title}>
+        <div class="mini-bar-label">${d.label}</div>
+        <div class="mini-bar-bg">
+          <div class="mini-bar-fill" style="width:${max ? (+d.val / max * 100) : 0}%; background:${color}"></div>
+        </div>
+        <div class="mini-bar-val">${d.val}${unit || ""}</div>
+      </div>
+    `;
+  }).join("");
+
+  if(onClickFn){
+    el.querySelectorAll(".clickable-row").forEach((row, i) => {
+      const label = data[i].label;
+
+      row.addEventListener("click", () => {
+        window[onClickFn](label);
+      });
+    });
+  }
+}
+
+function normM(code){if(!code)return code;return code.split(/\s*\/\s*/).map(s=>s.trim()).sort().join(" / ");}
+
 function bTile(name,badge,bbg,bcol,onClick){
   const pic=bP(name);
-  return `<div class="thumb-card" onclick="${onClick}">
-    <div class="thumb-img-wrap">${pic?`<img src="${pic}" alt="${name}" onerror="this.parentElement.innerHTML='<div class=thumb-img-ph>🐦</div>'" onclick="event.stopPropagation();lb('image','${pic}','${name}','${credit(pic)}')"/>` :`<div class="thumb-img-ph">🐦</div>`}</div>
-    <div class="thumb-body"><div class="thumb-name">${name}</div><div class="thumb-badge" style="background:${bbg};color:${bcol}">${badge}</div></div>
-  </div>`;
+  return '<div class="thumb-card" onclick="'+onClick+'"><div class="thumb-img-wrap">'+(pic?'<img src="'+pic+'" alt="'+name+'" onerror="this.parentElement.innerHTML=\'<div class=thumb-img-ph>&#x1F426;</div>\'" onclick="event.stopPropagation();lb(\'image\',\''+pic+'\',\''+name+'\',\''+cred(pic)+'\')" />':"<div class='thumb-img-ph'>&#x1F426;</div>")+'</div><div class="thumb-body"><div class="thumb-name">'+name+'</div><div class="thumb-badge" style="background:'+bbg+';color:'+bcol+'">'+badge+"</div></div></div>";
 }
 
-// ============================================================
-// BUILD CHARTS
-// ============================================================
 function buildCharts(){
-  // FOSSITT
-  const fossitt=STATS.habitats_area?.fossitt;
-  if(fossitt) mBar("fossitt-bars",fossitt.filter(f=>(f.total_ha||f.ha||0)>0).map(f=>({label:f.FossLayer||f.Fossitt_primary,val:(+(f.total_ha||f.ha||0)).toFixed(2)})),"#3a9a40"," ha");
+  // FOSSITT with info tooltips
+  const fossitt=STATS.habitats_area&&STATS.habitats_area.fossitt;
+  if(fossitt){
+    const el=document.getElementById("fossitt-bars");
+    const data=fossitt.filter(f=>(f.total_ha||f.ha||0)>0).map(f=>({label:f.FossLayer||f.Fossitt_primary,code:f.Fossitt_primary,val:(+(f.total_ha||f.ha||0)).toFixed(2)}));
+    const max=Math.max(...data.map(d=>+(d.val)));
+    el.innerHTML=data.map(d=>{
+      const desc=(FOSSITT_DESC[d.code]||FOSSITT_DESC["DEFAULT"]);
+      return '<div class="fossitt-row"><div class="f-label" title="'+d.label+'">'+d.label+'</div><div class="f-bar-bg"><div class="f-bar-fill" style="width:'+(max?(+d.val/max*100):0)+'%;background:#3a9a40"></div></div><div class="f-val">'+d.val+' ha</div><div class="f-info"><div class="f-info-btn">i<div class="f-tip"><strong>'+d.label+"</strong><br/>"+desc+"</div></div></div></div>";
+    }).join("");
+  }
 
-  // ARTNAT
-  const an=STATS.habitats_area?.art_semi;
+  const an=STATS.habitats_area&&STATS.habitats_area.art_semi;
   if(an){
     const tot=an.reduce((s,r)=>s+(+(r.ha||0)),0);
     const cols={"Semi-Natural":"#3a9a40","Artificial":"#c8a040"};
-    document.getElementById("artnat-bar").innerHTML=`
-      <div class="stacked-bar">${an.map(r=>`<div class="stacked-seg" style="width:${(+(r.ha||0)/tot*100).toFixed(1)}%;background:${cols[r.Artificial]||"#888"}">${(+(r.pct||0)).toFixed(0)}%</div>`).join("")}</div>
-      <div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap">${an.map(r=>`<div style="display:flex;align-items:center;gap:4px;font-size:10px"><div style="width:9px;height:9px;border-radius:2px;background:${cols[r.Artificial]||"#888"}"></div>${r.Artificial} ${(+(r.pct||0)).toFixed(1)}%</div>`).join("")}</div>`;
+    document.getElementById("artnat-bar").innerHTML='<div class="stacked-bar">'+an.map(r=>'<div class="stacked-seg" style="width:'+(+(r.ha||0)/tot*100).toFixed(1)+'%;background:'+(cols[r.Artificial]||"#888")+'">'+(+(r.pct||0)).toFixed(0)+"%</div>").join("")+"</div>"+'<div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap">'+an.map(r=>'<div style="display:flex;align-items:center;gap:4px;font-size:10px"><div style="width:9px;height:9px;border-radius:2px;background:'+(cols[r.Artificial]||"#888")+'"></div>'+r.Artificial+" "+(+(r.pct||0)).toFixed(1)+"%</div>").join("")+"</div>";
   }
 
-  // MOSAICS
-  const mos=STATS.habitats_area?.mosaic_combos;
+  const mos=STATS.habitats_area&&STATS.habitats_area.mosaic_combos;
   if(mos){
     const mg={};
-    mos.forEach(m=>{ const k=normM(m.mosaic_codes); if(!mg[k]) mg[k]={code:k,n:0,ha:0}; mg[k].n+=+(m.n_polygons||0); mg[k].ha+=+(m.total_ha||0); });
-    document.getElementById("mosaic-table-wrap").innerHTML=`<table class="mosaic-table"><thead><tr><th>Combination</th><th>Polygons</th><th>Area (ha)</th></tr></thead><tbody>${Object.values(mg).sort((a,b)=>b.ha-a.ha).map(r=>`<tr><td><strong>${r.code}</strong></td><td>${r.n}</td><td>${r.ha.toFixed(3)}</td></tr>`).join("")}</tbody></table>`;
+    mos.forEach(m=>{const k=normM(m.mosaic_codes);if(!mg[k])mg[k]={code:k,n:0,ha:0};mg[k].n+=+(m.n_polygons||0);mg[k].ha+=+(m.total_ha||0);});
+    document.getElementById("mosaic-table-wrap").innerHTML='<table class="mosaic-table"><thead><tr><th>Combination</th><th>Polygons</th><th>Area (ha)</th></tr></thead><tbody>'+Object.values(mg).sort((a,b)=>b.ha-a.ha).map(r=>"<tr><td><strong>"+r.code+"</strong></td><td>"+r.n+"</td><td>"+r.ha.toFixed(3)+"</td></tr>").join("")+"</tbody></table>";
   }
 
-  // LINEAR
-  const lin=STATS.habitats_linear?.by_type;
-  if(lin) mBar("linear-bars",lin.map(l=>({label:l.FossLayer,val:Math.round(+(l.total_m||0))})),"#7ab648"," m");
+  const lin=STATS.habitats_linear&&STATS.habitats_linear.by_type;
+  if(lin)mBar("linear-bars",lin.map(l=>({label:l.FossLayer,val:Math.round(+(l.total_m||0))})),"#7ab648"," m");
 
-  // BIRD RECORDS
-  const br=STATS.birds?.species_records;
-  if(br) mBar("bird-records-bars",br.map(b=>({label:b["BTO.Name"]||b.BTO_Name||"",val:+(b.n_records||0)})),"#4a90d9");
+  const br=STATS.birds&&STATS.birds.species_records;
+  if(br)mBar("bird-records-bars",br.map(b=>({label:b["BTO.Name"]||b.BTO_Name||"",val:+(b.n_records||0)})),"#4a90d9","","highlightBird");
 
-  // BIRD HABITAT
-  const bh=STATS.birds?.species_per_habitat;
-  if(bh) mBar("bird-habitat-bars",bh.map(b=>({label:b.Habitat,val:+(b.n_species||0)})),"#4a90d9");
+  const bh=STATS.birds&&STATS.birds.species_per_habitat;
+  if(bh)mBar("bird-habitat-bars",bh.map(b=>({label:b.Habitat,val:+(b.n_species||0)})),"#4a90d9");
 
-  // BIRD BREEDING TILES
-  const brd=STATS.birds?.confirmed_breeders;
-  if(brd) document.getElementById("bird-breeding-tiles").innerHTML=`<div class="thumb-grid">${brd.map(b=>{const n=b["BTO.Name"]||b.BTO_Name||"Bird";return bTile(n,"Confirmed breeding","#fff7e6","#b8620a",`highlightBird('${n.replace(/'/g,"\\'")}')`)}).join("")}</div>`;
+  const brd=STATS.birds&&STATS.birds.confirmed_breeders;
+  if(brd)document.getElementById("bird-breeding-tiles").innerHTML='<div class="thumb-grid">'+brd.map(b=>{const n=b["BTO.Name"]||b.BTO_Name||"Bird";return bTile(n,"Confirmed breeding","#fff7e6","#b8620a","highlightBird('"+n.replace(/'/g,"\\'")+"')");}).join("")+"</div>";
 
-  // BIRD RED/AMBER TILES
-  const ra=STATS.birds?.red_amber_species;
-  if(ra) document.getElementById("bird-redamber-tiles").innerHTML=`<div class="thumb-grid">${ra.map(b=>{const n=b["BTO.Name"]||b.BTO_Name||"Bird", bocci=b["BoCCI.Stat"]||b.BoCCI_Stat||"", isR=bocci==="Red";return bTile(n,bocci,isR?"#fdd":"#fff7e6",isR?"#c0392b":"#b8620a",`highlightBird('${n.replace(/'/g,"\\'")}')`)}).join("")}</div>`;
+  const ra=STATS.birds&&STATS.birds.red_amber_species;
+  if(ra)document.getElementById("bird-redamber-tiles").innerHTML='<div class="thumb-grid">'+ra.map(b=>{const n=b["BTO.Name"]||b.BTO_Name||"Bird",bocci=b["BoCCI.Stat"]||b.BoCCI_Stat||"",isR=bocci==="Red";return bTile(n,bocci,isR?"#fdd":"#fff7e6",isR?"#c0392b":"#b8620a","highlightBird('"+n.replace(/'/g,"\\'")+"')");}).join("")+"</div>";
 
-  // BAT RECORDS
-  const batr=STATS.bats?.species_records;
-  if(batr) mBar("bat-records-bars",batr.map(b=>({label:b["Common.Nam"]||b.Common_Nam||b.Species||"",val:+(b.n_records||0)})),"#9b59b6");
+  const batr=STATS.bats&&STATS.bats.species_records;
+  if(batr)mBar("bat-records-bars",batr.map(b=>({label:b["Common.Nam"]||b.Common_Nam||b.Species||"",val:+(b.n_records||0)})),"#9b59b6","","highlightBat");
+  if(batr)document.getElementById("bat-species-tiles").innerHTML='<div class="thumb-grid">'+batr.map(b=>{const n=b["Common.Nam"]||b.Common_Nam||b.Species||"Bat",sci=b.Species||"",pic=batP(sci);return'<div class="thumb-card" onclick="highlightBat(\''+n.replace(/'/g,"\\'")+'\')"><div class="thumb-img-wrap">'+(pic?'<img src="'+pic+'" alt="'+n+'" onerror="this.parentElement.innerHTML=\'<div class=thumb-img-ph>&#x1F987;</div>\'" onclick="event.stopPropagation();lb(\'image\',\''+pic+'\',\''+n+'\',\''+cred(pic)+'\')" />':"<div class='thumb-img-ph'>&#x1F987;</div>")+'</div><div class="thumb-body"><div class="thumb-name">'+n+'</div><div style="font-size:9px;color:var(--mu);font-style:italic">'+sci+"</div></div></div>";}).join("")+"</div>";
 
-  // BAT TILES
-  if(batr) document.getElementById("bat-species-tiles").innerHTML=`<div class="thumb-grid">${batr.map(b=>{
-    const n=b["Common.Nam"]||b.Common_Nam||b.Species||"Bat", sci=b.Species||"", pic=batP(sci);
-    return `<div class="thumb-card"><div class="thumb-img-wrap">${pic?`<img src="${pic}" alt="${n}" onerror="this.parentElement.innerHTML='<div class=thumb-img-ph>🦇</div>'" onclick="lb('image','${pic}','${n}','${credit(pic)}')" />`:`<div class="thumb-img-ph">🦇</div>`}</div><div class="thumb-body"><div class="thumb-name">${n}</div><div style="font-size:9px;color:var(--mu);font-style:italic">${sci}</div></div></div>`;
-  }).join("")}</div>`;
-
-  // AMPH BARS + LIST
-  const ar=STATS.amphibians?.records;
+  const ar=STATS.amphibians&&STATS.amphibians.records;
   if(ar){
-    const cnt={}; ar.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});
-    mBar("amph-records-bars",Object.entries(cnt).map(([label,val])=>({label,val})),"#16a085");
+    const cnt={};ar.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});
+    mBar("amph-records-bars",Object.entries(cnt).map(([label,val])=>({label,val})),"#16a085","","highlightAmph");
     document.getElementById("amph-records-list").innerHTML=ar.map(r=>{
-      const sci=r.Species||"", n=r["Common.Nam"]||r.Common_Nam||sci||"Amphibian", pic=aP(r.Date||"",sci);
-      return `<div class="obs-row">${pic?`<img class="obs-photo" src="${pic}" alt="${n}" onclick="lb('image','${pic}','${n}','')" onerror="this.style.display='none'"/>`:`<div class="obs-dot" style="background:#16a085"></div>`}<div style="flex:1"><strong>${n}</strong><div style="font-size:10px;color:var(--mu);font-style:italic">${sci}</div><div style="font-size:10px;color:var(--mu)">${r.Notes||""}</div></div><div style="color:var(--mu);font-size:10px;flex-shrink:0">${r.Date||"—"}</div></div>`;
+      const sci=r.Species||"",n=r["Common.Nam"]||r.Common_Nam||sci||"Amphibian",pic=aP(r.Date||"",sci);
+      return '<div class="obs-row" onclick="highlightAmph(\''+n.replace(/'/g,"\\'")+'\')" title="Click to highlight on map">'+(pic?'<img class="obs-photo" src="'+pic+'" alt="'+n+'" onclick="event.stopPropagation();lb(\'image\',\''+pic+'\',\''+n+'\',\'\')" onerror="this.style.display=\'none\'"/>':"<div class='obs-dot' style='background:#16a085'></div>")+'<div style="flex:1"><strong>'+n+"</strong><div style='font-size:10px;color:var(--mu);font-style:italic'>"+sci+"</div><div style='font-size:10px;color:var(--mu)'>"+( r.Notes||"")+"</div></div><div style='color:var(--mu);font-size:10px;flex-shrink:0'>"+(r.Date||"")+"</div></div>";
     }).join("");
   }
 
-  // INV BARS + LIST + STAGES
-  const ir=STATS.invertebrates?.records;
+  const ir=STATS.invertebrates&&STATS.invertebrates.records;
   if(ir){
-    const cnt={}; ir.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});
-    mBar("inv-records-bars",Object.entries(cnt).map(([label,val])=>({label,val})),"#d35400");
+    const cnt={};ir.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});
+    mBar("inv-records-bars",Object.entries(cnt).map(([label,val])=>({label,val})),"#d35400","","highlightInv");
     document.getElementById("inv-records-list").innerHTML=ir.map(r=>{
-      const sci=r.Species||"", n=r["Common.Nam"]||r.Common_Nam||sci||"Invertebrate", pic=iP(sci,r.Notes);
-      return `<div class="obs-row">${pic?`<img class="obs-photo" src="${pic}" alt="${n}" onclick="lb('image','${pic}','${n}','')" onerror="this.style.display='none'"/>`:`<div class="obs-dot" style="background:#d35400"></div>`}<div style="flex:1"><strong>${n}</strong><div style="font-size:10px;color:var(--mu);font-style:italic">${sci}</div><div style="font-size:10px;color:var(--mu)">${r.Notes||""}</div></div><div style="color:var(--mu);font-size:10px;flex-shrink:0">${r.Date||"—"}</div></div>`;
+      const sci=r.Species||"",n=r["Common.Nam"]||r.Common_Nam||sci||"Invertebrate",pic=iP(sci,r.Notes);
+      return '<div class="obs-row" onclick="highlightInv(\''+n.replace(/'/g,"\\'")+'\')" title="Click to highlight on map">'+(pic?'<img class="obs-photo" src="'+pic+'" alt="'+n+'" onclick="event.stopPropagation();lb(\'image\',\''+pic+'\',\''+n+'\',\'\')" onerror="this.style.display=\'none\'"/>':"<div class='obs-dot' style='background:#d35400'></div>")+'<div style="flex:1"><strong>'+n+"</strong><div style='font-size:10px;color:var(--mu);font-style:italic'>"+sci+"</div><div style='font-size:10px;color:var(--mu)'>"+(r.Notes||"")+"</div></div><div style='color:var(--mu);font-size:10px;flex-shrink:0'>"+(r.Date||"")+"</div></div>";
     }).join("");
-    // LIFE STAGES
     const multi=Object.entries(INV_PICS).filter(([,s])=>s.length>1);
     const single=Object.entries(INV_PICS).filter(([,s])=>s.length===1);
     let sh="";
-    multi.forEach(([sci,stages])=>{
-      const rec=ir.find(r=>(r.Species||"").toLowerCase()===sci);
-      const cn=rec?(rec["Common.Nam"]||rec.Common_Nam||sci):sci;
-      sh+=`<div style="margin-bottom:10px"><div style="font-size:10.5px;font-weight:700;margin-bottom:5px">${cn}</div><div class="stage-grid">${stages.map(s=>`<div class="stage-card"><img class="stage-img" src="assets/invertebrate-pics/${s.file}" alt="${s.stage}" onclick="lb('image','assets/invertebrate-pics/${s.file}','${cn} — ${s.stage}','')" onerror="this.style.display='none'"/><div class="stage-lbl">${s.stage}</div></div>`).join("")}</div></div>`;
-    });
-    if(single.length){
-      sh+=`<div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mu);margin:8px 0 5px">Single stage recorded</div><div class="stage-grid">${single.map(([sci,stages])=>{
-        const rec=ir.find(r=>(r.Species||"").toLowerCase()===sci);
-        const cn=rec?(rec["Common.Nam"]||rec.Common_Nam||sci):sci, s=stages[0];
-        return `<div class="stage-card"><img class="stage-img" src="assets/invertebrate-pics/${s.file}" alt="${cn}" onclick="lb('image','assets/invertebrate-pics/${s.file}','${cn} — ${s.stage}','')" onerror="this.style.display='none'"/><div class="stage-lbl">${cn}</div><div class="stage-sci">${s.stage}</div></div>`;
-      }).join("")}</div>`;
-    }
+    multi.forEach(([sci,stages])=>{const rec=ir.find(r=>(r.Species||"").toLowerCase()===sci);const cn=rec?(rec["Common.Nam"]||rec.Common_Nam||sci):sci;sh+='<div style="margin-bottom:10px"><div style="font-size:10.5px;font-weight:700;margin-bottom:5px">'+cn+'</div><div class="stage-grid">'+stages.map(s=>'<div class="stage-card"><img class="stage-img" src="assets/invertebrate-pics/'+s.file+'" alt="'+s.stage+'" onclick="lb(\'image\',\'assets/invertebrate-pics/'+s.file+'\',\''+cn+" - "+s.stage+'\',\'\')" onerror="this.style.display=\'none\'"/><div class="stage-lbl">'+s.stage+"</div></div>").join("")+"</div></div>";});
+    if(single.length){sh+='<div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--mu);margin:8px 0 5px">Single stage recorded</div><div class="stage-grid">'+single.map(([sci,stages])=>{const rec=ir.find(r=>(r.Species||"").toLowerCase()===sci);const cn=rec?(rec["Common.Nam"]||rec.Common_Nam||sci):sci,s=stages[0];return'<div class="stage-card"><img class="stage-img" src="assets/invertebrate-pics/'+s.file+'" alt="'+cn+'" onclick="lb(\'image\',\'assets/invertebrate-pics/'+s.file+'\',\''+cn+" - "+s.stage+'\',\'\')" onerror="this.style.display=\'none\'"/><div class="stage-lbl">'+cn+'</div><div class="stage-sci">'+s.stage+"</div></div>";}).join("")+"</div>";}
     document.getElementById("inv-stage-grid").innerHTML=sh;
   }
 
-  // TREE DONUT
-  const ts=STATS.trees?.by_species;
-  if(ts) new Chart(document.getElementById("tree-donut").getContext("2d"),{
-    type:"doughnut",
-    data:{labels:ts.map(t=>t.Species),datasets:[{data:ts.map(t=>+(t.n||0)),backgroundColor:ts.map(t=>TC[t.Species]||"#27ae60"),borderWidth:2,borderColor:"#fff"}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{font:{size:10},padding:7,boxWidth:10}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} trees`}}}}
-  });
+  const ts=STATS.trees&&STATS.trees.by_species;
+  if(ts)new Chart(document.getElementById("tree-donut").getContext("2d"),{type:"doughnut",data:{labels:ts.map(t=>t.Species),datasets:[{data:ts.map(t=>+(t.n||0)),backgroundColor:ts.map(t=>TC[t.Species]||"#27ae60"),borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{font:{size:10},padding:7,boxWidth:10}},tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" trees"}}}}});
 
-  // CAMERA LIST
-  document.getElementById("cam-video-list").innerHTML=Object.entries(CAM).map(([cam,vids])=>`<div class="cam-block"><div class="cam-hdr"><div class="cam-dot"></div>${cam}</div><div class="cam-videos">${vids.map(v=>`<div class="cam-video-item" onclick="lb('video','assets/videos/${v.file}','${v.label} — ${cam}','')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>${v.label}</div>`).join("")}</div></div>`).join("");
+  document.getElementById("cam-video-list").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
 
-  // CAMERA SPECIES
   mBar("cam-species-bars",[{label:"Sika Deer",val:4},{label:"Badger",val:2},{label:"Red Fox",val:2},{label:"Robin",val:1},{label:"Sparrowhawk",val:1},{label:"Pheasant",val:1}],"#e74c3c");
 }
 
-// ============================================================
-// STATS CHIPS
-// ============================================================
-function ss(id,val){const el=document.getElementById(id);if(el)el.textContent=val??"—";}
-ss("stat-area-ha",     STATS.site?.area_ha);
-ss("stat-perim-km",    STATS.site?.perim_km);
-ss("stat-hab-total",   STATS.habitats_area?.total_polygons);
-ss("stat-hab-mosaics", STATS.habitats_area?.n_mosaics);
-ss("stat-lin-total",   STATS.habitats_linear?.total_features);
-ss("stat-lin-m",       STATS.habitats_linear?.total_m);
-ss("stat-bird-rec",    STATS.birds?.total_records);
-ss("stat-bird-spp",    STATS.birds?.total_species);
-ss("stat-bird-breed",  STATS.birds?.n_confirmed_breeders);
-ss("stat-bird-redamber",STATS.birds?.n_red_amber);
-ss("stat-bat-rec",     STATS.bats?.total_records);
-ss("stat-bat-spp",     STATS.bats?.total_species);
-ss("stat-amph-rec",    STATS.amphibians?.total_records);
-ss("stat-amph-spp",    STATS.amphibians?.total_species);
-ss("stat-inv-rec",     STATS.invertebrates?.total_records);
-ss("stat-inv-spp",     STATS.invertebrates?.total_species);
-ss("stat-tree-total",  STATS.trees?.total_planted);
-ss("stat-tree-spp",    STATS.trees?.total_species);
-ss("stat-cam-total",   STATS.cameras?.total_cameras);
+function ss(id,val){const el=document.getElementById(id);if(el)el.textContent=(val!=null&&val!==undefined)?val:"";}
+ss("stat-area-ha",STATS.site&&STATS.site.area_ha);
+ss("stat-perim-km",STATS.site&&STATS.site.perim_km);
+
+const habFossitt=(STATS.habitats_area&&STATS.habitats_area.fossitt)||[];
+const uniqueTypes=habFossitt.filter(f=>(f.total_ha||f.ha||0)>0).length;
+ss("stat-hab-areas",STATS.habitats_area&&STATS.habitats_area.total_polygons);
+ss("stat-hab-types",uniqueTypes);
+ss("stat-hab-mosaics",STATS.habitats_area&&STATS.habitats_area.n_mosaics);
+const artSemi=(STATS.habitats_area&&STATS.habitats_area.art_semi)||[];
+const semiNatRow=artSemi.find(r=>r.Artificial==="Semi-Natural");
+ss("stat-hab-seminat",semiNatRow?Math.round(+(semiNatRow.pct||0))+"%":"");
+ss("stat-lin-total",STATS.habitats_linear&&STATS.habitats_linear.total_features);
+ss("stat-lin-m",STATS.habitats_linear&&STATS.habitats_linear.total_m);
+ss("stat-bird-rec",STATS.birds&&STATS.birds.total_records);
+ss("stat-bird-spp",STATS.birds&&STATS.birds.total_species);
+ss("stat-bird-breed",STATS.birds&&STATS.birds.n_confirmed_breeders);
+ss("stat-bird-redamber",STATS.birds&&STATS.birds.n_red_amber);
+ss("stat-bat-rec",STATS.bats&&STATS.bats.total_records);
+ss("stat-bat-spp",STATS.bats&&STATS.bats.total_species);
+ss("stat-amph-rec",STATS.amphibians&&STATS.amphibians.total_records);
+ss("stat-amph-spp",STATS.amphibians&&STATS.amphibians.total_species);
+ss("stat-inv-rec",STATS.invertebrates&&STATS.invertebrates.total_records);
+ss("stat-inv-spp",STATS.invertebrates&&STATS.invertebrates.total_species);
+ss("stat-tree-total",STATS.trees&&STATS.trees.total_planted);
+ss("stat-tree-spp",STATS.trees&&STATS.trees.total_species);
+ss("stat-cam-total",STATS.cameras&&STATS.cameras.total_cameras);
 buildCharts();
 
-// ============================================================
-// HIGHLIGHT BIRDS
-// ============================================================
-function highlightBird(name){
-  if(!LV.birds){ map.addLayer(ML.birds); document.getElementById("tog-birds").classList.add("on"); LV.birds=true; document.getElementById("card-birds").classList.remove("inactive"); }
-  ML.birds.eachLayer(l=>{
-    const match=F.btoName(l.feature.properties)===name;
-    l.setIcon(match?mkIconHL("assets/icons/bird.png","#39c6bc",38):mkIcon("assets/icons/bird.png","#4a90d9",30));
-    if(match) l.bringToFront();
-  });
-}
-
-// ============================================================
-// POPOUT
-// ============================================================
 function openPO(id){
   const s=STATS;
   const defs={
-    study:{title:"Site boundary",color:"#176560",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.site.area_ha}</div><div class="po-chip-lbl">Hectares</div></div><div class="po-chip"><div class="po-chip-val">${s.site.perim_km}</div><div class="po-chip-lbl">Perimeter km</div></div><div class="po-chip"><div class="po-chip-val">${(s.site.area_m2||0).toLocaleString()}</div><div class="po-chip-lbl">m²</div></div><div class="po-chip"><div class="po-chip-val">${(s.site.perim_m||0).toLocaleString()}</div><div class="po-chip-lbl">Perimeter m</div></div></div><p style="font-size:12px;color:var(--mu);line-height:1.7">The Ticknock Lands study area covers ${s.site.area_ha} ha of upland and transitional habitat on the eastern slopes of the Dublin Mountains, surveyed in 2025–2026.</p>`},
-    hab_area:{title:"Area habitats",color:"#3a9a40",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.habitats_area.total_polygons}</div><div class="po-chip-lbl">Polygons</div></div><div class="po-chip"><div class="po-chip-val">${s.habitats_area.n_mosaics}</div><div class="po-chip-lbl">Mosaics</div></div><div class="po-chip"><div class="po-chip-val">100%</div><div class="po-chip-lbl">Green cover</div></div></div><div class="po-sec">Fossitt by area (ha)</div><div id="po-fossitt" style="margin-top:6px"></div><div class="po-sec" style="margin-top:14px">Artificial vs semi-natural</div><div id="po-artnat" style="margin-top:6px"></div>`},
-    hab_lin:{title:"Linear habitats",color:"#7ab648",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.habitats_linear.total_features}</div><div class="po-chip-lbl">Features</div></div><div class="po-chip"><div class="po-chip-val">${s.habitats_linear.total_m}m</div><div class="po-chip-lbl">Total length</div></div></div><div class="po-sec">Length by type</div><div id="po-lin" style="margin-top:6px"></div>`},
-    birds:{title:"Bird species",color:"#4a90d9",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.birds.total_records}</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">${s.birds.total_species}</div><div class="po-chip-lbl">Species</div></div><div class="po-chip"><div class="po-chip-val">${s.birds.n_confirmed_breeders}</div><div class="po-chip-lbl">Breeding</div></div><div class="po-chip"><div class="po-chip-val">${s.birds.n_red_amber}</div><div class="po-chip-lbl">Red/Amber</div></div></div><div class="po-sec">All species — records</div><div id="po-birds" style="margin-top:6px"></div>`},
-    bats:{title:"Bat species",color:"#9b59b6",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.bats.total_records}</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">${s.bats.total_species}</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-bats" style="margin-top:6px"></div>`},
-    amph:{title:"Amphibians",color:"#16a085",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.amphibians.total_records}</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">${s.amphibians.total_species}</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-amph" style="margin-top:6px"></div>`},
-    inv:{title:"Invertebrates",color:"#d35400",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.invertebrates.total_records}</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">${s.invertebrates.total_species}</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-inv" style="margin-top:6px"></div>`},
-    trees:{title:"Tree planting",color:"#27ae60",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">${s.trees.total_planted}</div><div class="po-chip-lbl">Planted</div></div><div class="po-chip"><div class="po-chip-val">${s.trees.total_species}</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Species breakdown</div><div style="position:relative;height:300px;margin-top:8px"><canvas id="po-tree-donut"></canvas></div>`},
-    cameras:{title:"Wildlife cameras",color:"#e74c3c",html:`<div class="po-chips"><div class="po-chip"><div class="po-chip-val">3</div><div class="po-chip-lbl">Cameras</div></div><div class="po-chip"><div class="po-chip-val">11</div><div class="po-chip-lbl">Video clips</div></div><div class="po-chip"><div class="po-chip-val">6</div><div class="po-chip-lbl">Species</div></div></div><div id="po-cams" style="margin-top:8px"></div>`}
+    study:{title:"Site boundary",color:"#176560",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.site.area_ha+'</div><div class="po-chip-lbl">Hectares</div></div><div class="po-chip"><div class="po-chip-val">'+s.site.perim_km+'</div><div class="po-chip-lbl">Perimeter km</div></div><div class="po-chip"><div class="po-chip-val">'+((s.site.area_m2||0).toLocaleString())+'</div><div class="po-chip-lbl">m2</div></div></div><p style="font-size:12px;color:var(--mu);line-height:1.7">The Ticknock Lands study area covers '+s.site.area_ha+' ha of upland and transitional habitat on the eastern slopes of the Dublin Mountains, surveyed in 2025-2026.</p>'},
+    hab_area:{title:"Area habitats",color:"#3a9a40",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.habitats_area.total_polygons+'</div><div class="po-chip-lbl">Mapped areas</div></div><div class="po-chip"><div class="po-chip-val">'+uniqueTypes+'</div><div class="po-chip-lbl">Habitat types</div></div><div class="po-chip"><div class="po-chip-val">'+s.habitats_area.n_mosaics+'</div><div class="po-chip-lbl">Mosaics</div></div><div class="po-chip"><div class="po-chip-val">100%</div><div class="po-chip-lbl">Green cover</div></div></div><div class="po-sec">Fossitt by area (ha)</div><div id="po-fossitt" style="margin-top:6px"></div><div class="po-sec" style="margin-top:14px">Artificial vs semi-natural</div><div id="po-artnat" style="margin-top:6px"></div>'},
+    hab_lin:{title:"Linear habitats",color:"#7ab648",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.habitats_linear.total_features+'</div><div class="po-chip-lbl">Features</div></div><div class="po-chip"><div class="po-chip-val">'+s.habitats_linear.total_m+'m</div><div class="po-chip-lbl">Total length</div></div></div><div class="po-sec">Length by type</div><div id="po-lin" style="margin-top:6px"></div>'},
+    birds:{title:"Bird species",color:"#4a90d9",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.birds.total_records+'</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">'+s.birds.total_species+'</div><div class="po-chip-lbl">Species</div></div><div class="po-chip"><div class="po-chip-val">'+s.birds.n_confirmed_breeders+'</div><div class="po-chip-lbl">Breeding</div></div><div class="po-chip"><div class="po-chip-val">'+s.birds.n_red_amber+'</div><div class="po-chip-lbl">Red/Amber</div></div></div><div class="po-sec">All species - records</div><div id="po-birds" style="margin-top:6px"></div>'},
+    bats:{title:"Bat species",color:"#9b59b6",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.bats.total_records+'</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">'+s.bats.total_species+'</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-bats" style="margin-top:6px"></div>'},
+    amph:{title:"Amphibians",color:"#16a085",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.amphibians.total_records+'</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">'+s.amphibians.total_species+'</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-amph" style="margin-top:6px"></div>'},
+    inv:{title:"Invertebrates",color:"#d35400",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.invertebrates.total_records+'</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">'+s.invertebrates.total_species+'</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-inv" style="margin-top:6px"></div>'},
+    trees:{title:"Tree planting",color:"#27ae60",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.trees.total_planted+'</div><div class="po-chip-lbl">Planted</div></div><div class="po-chip"><div class="po-chip-val">'+s.trees.total_species+'</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Species breakdown</div><div style="position:relative;height:300px;margin-top:8px"><canvas id="po-tree-donut"></canvas></div>'},
+    cameras:{title:"Wildlife cameras",color:"#e74c3c",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">3</div><div class="po-chip-lbl">Cameras</div></div><div class="po-chip"><div class="po-chip-val">11</div><div class="po-chip-lbl">Video clips</div></div><div class="po-chip"><div class="po-chip-val">6</div><div class="po-chip-lbl">Species</div></div></div><div id="po-cams" style="margin-top:8px"></div>'}
   };
-  const cfg=defs[id]; if(!cfg) return;
+  const cfg=defs[id];if(!cfg)return;
   document.getElementById("po-title").textContent=cfg.title;
   document.getElementById("po-dot").style.background=cfg.color;
   document.getElementById("po-body").innerHTML=cfg.html;
   document.getElementById("popoutOverlay").classList.add("open");
   requestAnimationFrame(()=>{
     if(id==="hab_area"){
-      const f=STATS.habitats_area?.fossitt;
-      if(f) mBar("po-fossitt",f.filter(x=>(x.total_ha||x.ha||0)>0).map(x=>({label:x.FossLayer||x.Fossitt_primary,val:(+(x.total_ha||x.ha||0)).toFixed(2)})),"#3a9a40"," ha");
-      const a=STATS.habitats_area?.art_semi;
-      if(a){
-        const tot=a.reduce((s,r)=>s+(+(r.ha||0)),0), cols={"Semi-Natural":"#3a9a40","Artificial":"#c8a040"};
-        document.getElementById("po-artnat").innerHTML=`<div class="stacked-bar">${a.map(r=>`<div class="stacked-seg" style="width:${(+(r.ha||0)/tot*100).toFixed(1)}%;background:${cols[r.Artificial]||"#888"}">${(+(r.pct||0)).toFixed(0)}%</div>`).join("")}</div><div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap">${a.map(r=>`<div style="display:flex;align-items:center;gap:4px;font-size:11px"><div style="width:9px;height:9px;border-radius:2px;background:${cols[r.Artificial]||"#888"}"></div>${r.Artificial} ${(+(r.pct||0)).toFixed(1)}%</div>`).join("")}</div>`;
-      }
+      const f=STATS.habitats_area&&STATS.habitats_area.fossitt;
+      if(f)mBar("po-fossitt",f.filter(x=>(x.total_ha||x.ha||0)>0).map(x=>({label:x.FossLayer||x.Fossitt_primary,val:(+(x.total_ha||x.ha||0)).toFixed(2)})),"#3a9a40"," ha");
+      const a=STATS.habitats_area&&STATS.habitats_area.art_semi;
+      if(a){const tot=a.reduce((s,r)=>s+(+(r.ha||0)),0),cols={"Semi-Natural":"#3a9a40","Artificial":"#c8a040"};document.getElementById("po-artnat").innerHTML='<div class="stacked-bar">'+a.map(r=>'<div class="stacked-seg" style="width:'+(+(r.ha||0)/tot*100).toFixed(1)+'%;background:'+(cols[r.Artificial]||"#888")+'">'+(+(r.pct||0)).toFixed(0)+"%</div>").join("")+"</div>"+'<div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap">'+a.map(r=>'<div style="display:flex;align-items:center;gap:4px;font-size:11px"><div style="width:9px;height:9px;border-radius:2px;background:'+(cols[r.Artificial]||"#888")+'"></div>'+r.Artificial+" "+(+(r.pct||0)).toFixed(1)+"%</div>").join("")+"</div>";}
     }
-    if(id==="hab_lin"&&STATS.habitats_linear?.by_type) mBar("po-lin",STATS.habitats_linear.by_type.map(l=>({label:l.FossLayer,val:Math.round(+(l.total_m||0))})),"#7ab648"," m");
-    if(id==="birds"&&STATS.birds?.species_records) mBar("po-birds",STATS.birds.species_records.map(b=>({label:b["BTO.Name"]||b.BTO_Name||"",val:+(b.n_records||0)})),"#4a90d9");
-    if(id==="bats"&&STATS.bats?.species_records) mBar("po-bats",STATS.bats.species_records.map(b=>({label:b["Common.Nam"]||b.Common_Nam||b.Species||"",val:+(b.n_records||0)})),"#9b59b6");
-    if(id==="amph"&&STATS.amphibians?.records){
-      const cnt={}; STATS.amphibians.records.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});
-      mBar("po-amph",Object.entries(cnt).map(([label,val])=>({label,val})),"#16a085");
-    }
-    if(id==="inv"&&STATS.invertebrates?.records){
-      const cnt={}; STATS.invertebrates.records.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});
-      mBar("po-inv",Object.entries(cnt).map(([label,val])=>({label,val})),"#d35400");
-    }
-    if(id==="trees"&&STATS.trees?.by_species){
-      new Chart(document.getElementById("po-tree-donut").getContext("2d"),{
-        type:"doughnut",
-        data:{labels:STATS.trees.by_species.map(t=>t.Species),datasets:[{data:STATS.trees.by_species.map(t=>+(t.n||0)),backgroundColor:STATS.trees.by_species.map(t=>TC[t.Species]||"#27ae60"),borderWidth:2,borderColor:"#fff"}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{font:{size:12},padding:10,boxWidth:12}},tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw} trees`}}}}
-      });
-    }
-    if(id==="cameras") document.getElementById("po-cams").innerHTML=Object.entries(CAM).map(([cam,vids])=>`<div class="cam-block" style="margin-bottom:10px"><div class="cam-hdr"><div class="cam-dot"></div>${cam}</div><div class="cam-videos">${vids.map(v=>`<div class="cam-video-item" onclick="lb('video','assets/videos/${v.file}','${v.label} — ${cam}','')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>${v.label}</div>`).join("")}</div></div>`).join("");
+    if(id==="hab_lin"&&STATS.habitats_linear&&STATS.habitats_linear.by_type)mBar("po-lin",STATS.habitats_linear.by_type.map(l=>({label:l.FossLayer,val:Math.round(+(l.total_m||0))})),"#7ab648"," m");
+    if(id==="birds"&&STATS.birds&&STATS.birds.species_records)mBar("po-birds",STATS.birds.species_records.map(b=>({label:b["BTO.Name"]||b.BTO_Name||"",val:+(b.n_records||0)})),"#4a90d9","","highlightBird");
+    if(id==="bats"&&STATS.bats&&STATS.bats.species_records)mBar("po-bats",STATS.bats.species_records.map(b=>({label:b["Common.Nam"]||b.Common_Nam||b.Species||"",val:+(b.n_records||0)})),"#9b59b6","","highlightBat");
+    if(id==="amph"&&STATS.amphibians&&STATS.amphibians.records){const cnt={};STATS.amphibians.records.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});mBar("po-amph",Object.entries(cnt).map(([label,val])=>({label,val})),"#16a085","","highlightAmph");}
+    if(id==="inv"&&STATS.invertebrates&&STATS.invertebrates.records){const cnt={};STATS.invertebrates.records.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});mBar("po-inv",Object.entries(cnt).map(([label,val])=>({label,val})),"#d35400","","highlightInv");}
+    if(id==="trees"&&STATS.trees&&STATS.trees.by_species){new Chart(document.getElementById("po-tree-donut").getContext("2d"),{type:"doughnut",data:{labels:STATS.trees.by_species.map(t=>t.Species),datasets:[{data:STATS.trees.by_species.map(t=>+(t.n||0)),backgroundColor:STATS.trees.by_species.map(t=>TC[t.Species]||"#27ae60"),borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{font:{size:12},padding:10,boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" trees"}}}}});}
+    if(id==="cameras")document.getElementById("po-cams").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block" style="margin-bottom:10px"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
   });
 }
-function closePO(){ document.getElementById("popoutOverlay").classList.remove("open"); }
+function closePO(){document.getElementById("popoutOverlay").classList.remove("open");}
 document.getElementById("poClose").onclick=closePO;
-document.getElementById("popoutOverlay").addEventListener("click",e=>{ if(e.target.id==="popoutOverlay") closePO(); });
-document.querySelectorAll(".expand-btn").forEach(btn=>{ btn.addEventListener("click",e=>{ e.stopPropagation(); openPO(btn.dataset.popout); }); });
+document.getElementById("popoutOverlay").addEventListener("click",e=>{if(e.target.id==="popoutOverlay")closePO();});
+document.querySelectorAll(".expand-btn").forEach(btn=>{btn.addEventListener("click",e=>{e.stopPropagation();openPO(btn.dataset.popout);});});
 </script>
 </body>
 </html>
