@@ -437,7 +437,7 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
                 <div class="stat-chip"><div class="stat-val" id="stat-tree-total">&#8212;</div><div class="stat-lbl">Trees planted</div></div>
                 <div class="stat-chip"><div class="stat-val" id="stat-tree-spp">&#8212;</div><div class="stat-lbl">Species</div></div>
               </div>
-              <div class="plot-hdr"><div class="plot-title">Species breakdown</div><div class="info-btn">i<div class="info-tip">Native tree species planted on site as part of the restoration programme, selected to enhance biodiversity and habitat connectivity.</div></div></div>
+              <div class="plot-hdr"><div class="plot-title">Species breakdown</div><div class="info-btn">i<div class="info-tip">Native tree species planted on site as part of the restoration programme, selected to enhance biodiversity and habitat connectivity. Click a segment or legend label to highlight that species on the map.</div></div></div>
               <div style="position:relative;height:185px"><canvas id="tree-donut"></canvas></div>
             </div>
             <div class="acc-footer"><button class="expand-btn" data-popout="trees">&#10530; Expand</button></div>
@@ -492,29 +492,19 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
 
 const FOSSITT_DESC = {
   "WS1":"Scrub is made up of dense shrubs such as hawthorn, blackthorn, willow or gorse. It provides important shelter, nesting sites and food sources for birds, mammals and insects, making it a valuable habitat for biodiversity.",
-
   "WD4":"Conifer plantation woodland consists of planted evergreen trees, typically grown for timber production. While generally less diverse than native woodland, these forests can still provide habitat for birds, mammals and woodland wildlife.",
-
   "GS4":"Wet grassland occurs on poorly drained or seasonally waterlogged ground and is often characterised by rushes and moisture-loving plants. These areas are important for birds, amphibians, pollinators and other wildlife that depend on wet habitats.",
-
   "GS3":"Dry-humid acid grassland develops on acidic soils and supports a range of grasses, wildflowers and insects. Although often overlooked, these grasslands can provide valuable habitat for biodiversity.",
-
   "GS1":"Improved grassland is farmland that has been managed to increase grass production for grazing or silage. While it is important for agriculture, it generally supports fewer plant and animal species than semi-natural grasslands.",
-
   "GS2":"Dry calcareous grassland develops on lime-rich soils and is often rich in wildflowers. These species-rich grasslands are among Ireland's most valuable habitats for pollinators and other wildlife.",
-
   "HD1":"Dense bracken is dominated by tall bracken ferns and is commonly found on hillsides and rough ground. While extensive bracken can limit plant diversity, it can still provide cover and shelter for some wildlife species.",
-
   "FW1":"Rivers and streams are important freshwater habitats that support fish, aquatic insects, birds and mammals such as otters. Healthy watercourses also play a key role in connecting habitats across the landscape.",
-
   "FW4":"Drainage ditches are artificial or modified channels that carry water through the landscape. They can provide valuable habitat for aquatic plants, insects and amphibians, particularly where water quality is good.",
-
   "WD1":"Broadleaved woodland is dominated by native trees such as oak, ash, birch and willow. These woodlands are among Ireland's richest habitats, supporting a wide variety of plants, birds, mammals and insects.",
-
   "WL1":"Wet woodland occurs on waterlogged or seasonally flooded ground and is often dominated by alder or willow trees. It provides important habitat for birds, invertebrates and other wildlife associated with wet environments.",
-
   "DEFAULT":"This habitat was mapped as part of the ecological survey using the Fossitt habitat classification system, which is widely used to describe and assess habitats in Ireland."
 };
+
 const BIRD_PICS={
   "blackbird":"Blackbird - Image - Saxifraga - Merel bij Garderen.jpg",
   "blackcap":"Blackcap - Image - Saxifraga - Mark Zekhuis.jpg",
@@ -572,7 +562,24 @@ function closeLb(){const vid=document.getElementById("lbVideo");vid.pause();vid.
 document.getElementById("lbClose").onclick=closeLb;
 document.getElementById("lightbox").addEventListener("click",e=>{if(e.target.id==="lightbox")closeLb();});
 
-const CAM={"Cam 1":[{file:"Cam 1 - Badger.MP4",label:"Badger"},{file:"Cam 1 - Badger 2.MP4",label:"Badger (2)"},{file:"Cam 1 - Deer.MP4",label:"Sika Deer"},{file:"Cam 1 - Deer 2.MP4",label:"Sika Deer (2)"},{file:"Cam 1 - Fox.MP4",label:"Red Fox"},{file:"Cam 1 - Fox 2.MP4",label:"Red Fox (2)"},{file:"Cam 1 - Robin.MP4",label:"Robin"},{file:"Cam 1 - Sparrowhawk.MP4",label:"Sparrowhawk"}],"Cam 2":[{file:"Cam 2 - Deer.MP4",label:"Sika Deer"},{file:"Cam 2 - Deer 2.MP4",label:"Sika Deer (2)"},{file:"Cam 2 - Pheasant.MP4",label:"Pheasant"}],"Cam 3":[{file:"Cam 3 - Little Dargle Stream.MP4",label:"Little Dargle Stream"}]};
+// CHANGE 2: Removed Cam 3 (stream video not working)
+const CAM={
+  "Cam 1":[
+    {file:"Cam 1 - Badger.MP4",label:"Badger"},
+    {file:"Cam 1 - Badger 2.MP4",label:"Badger (2)"},
+    {file:"Cam 1 - Deer.MP4",label:"Sika Deer"},
+    {file:"Cam 1 - Deer 2.MP4",label:"Sika Deer (2)"},
+    {file:"Cam 1 - Fox.MP4",label:"Red Fox"},
+    {file:"Cam 1 - Fox 2.MP4",label:"Red Fox (2)"},
+    {file:"Cam 1 - Robin.MP4",label:"Robin"},
+    {file:"Cam 1 - Sparrowhawk.MP4",label:"Sparrowhawk"}
+  ],
+  "Cam 2":[
+    {file:"Cam 2 - Deer.MP4",label:"Sika Deer"},
+    {file:"Cam 2 - Deer 2.MP4",label:"Sika Deer (2)"},
+    {file:"Cam 2 - Pheasant.MP4",label:"Pheasant"}
+  ]
+};
 
 function mkIcon(p,ring,sz){sz=sz||30;const inner=Math.round(sz*0.58);return L.divIcon({className:"",html:'<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:#fff;border:2.5px solid '+ring+';display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.28);overflow:hidden"><img src="'+p+'" style="width:'+inner+'px;height:'+inner+'px;object-fit:contain;display:block"/></div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});}
 function mkHL(p,sz){sz=sz||38;const inner=Math.round(sz*0.55);return L.divIcon({className:"",html:'<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:#fff;border:3px solid #f5a623;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 5px rgba(245,166,35,.35),0 2px 10px rgba(0,0,0,.3);overflow:hidden"><img src="'+p+'" style="width:'+inner+'px;height:'+inner+'px;object-fit:contain;display:block"/></div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});}
@@ -626,7 +633,8 @@ ML.birds=L.geoJSON(GJ_BIRDS,{
     const p=f.properties,name=F.btoName(p)||"Bird";
     const bocci=F.bocci(p),bc=bocci==="Red"?"#c0392b":bocci==="Amber"?"#e67e22":"#2ecc71";
     const pic=bP(name);
-    l.bindTooltip("<strong>"+name+"</strong><br/><span style='opacity:.75'>"+(bocci||"Green")+"</span>",{direction:"top"});
+    // CHANGE 3: Tooltip now shows 'BoCCI Green/Amber/Red' so clients have context for the label
+    l.bindTooltip("<strong>"+name+"</strong><br/><span style='opacity:.75'>BoCCI "+(bocci||"Green")+"</span>",{direction:"top"});
     l.bindPopup(popup(pic,name,[["Date",F.date(p)],["BTO code",F.btoCode(p)],["Activity",F.act(p)],["Breeding",F.breed(p)],["Habitat",F.hab(p)],["Recorder",F.rec(p)],["BoCCI",'<span style="color:'+bc+';font-weight:700">'+(bocci||"")+"</span>"]],F.notes(p)&&F.notes(p)!=="-"?F.notes(p):null),{maxWidth:290});
   }
 }).addTo(map);
@@ -685,10 +693,8 @@ document.querySelectorAll(".stat-chip.clickable").forEach(chip=>{
     const group=chip.dataset.group,pane=chip.dataset.pane;
     if(!group||!pane)return;
     const scroll=chip.closest(".acc-scroll");
-    // mark active chip
     scroll.querySelectorAll('.stat-chip.clickable[data-group="'+group+'"]').forEach(c=>c.classList.remove("chip-active"));
     chip.classList.add("chip-active");
-    // switch panes
     scroll.querySelectorAll(".plot-pane").forEach(p=>p.classList.remove("active"));
     const t=document.getElementById(group+"-"+pane);if(t)t.classList.add("active");
   });
@@ -702,7 +708,6 @@ document.querySelectorAll(".acc-footer .plot-tab").forEach(btn=>{
     const body=btn.closest(".acc-body");
     body.querySelectorAll(".plot-pane").forEach(p=>p.classList.remove("active"));
     const t=document.getElementById(group+"-"+pane);if(t)t.classList.add("active");
-    // deactivate all chips and activate none (neutral state)
     body.querySelectorAll('.stat-chip.clickable[data-group="'+group+'"]').forEach(c=>c.classList.remove("chip-active"));
   });
 });
@@ -719,141 +724,95 @@ document.querySelectorAll(".plot-tabs .plot-tab").forEach(btn=>{
   });
 });
 
-// HIGHLIGHT FUNCTIONS
+// CHANGE 1 & 4: Highlight functions — glow persists until map click (no auto-timeout)
 let curHL = {
   layerKey: null,
   iconPath: null,
   ring: null,
-  timer: null
+  mapClickListener: null
 };
 
 function resetHL(){
   if(!curHL.layerKey || !ML[curHL.layerKey]) return;
-
   ML[curHL.layerKey].eachLayer(l => {
-    if(l.setIcon){
-      l.setIcon(mkIcon(curHL.iconPath, curHL.ring, 30));
-    }
+    if(l.setIcon) l.setIcon(mkIcon(curHL.iconPath, curHL.ring, 30));
   });
-
+  if(curHL.mapClickListener){
+    map.off("click", curHL.mapClickListener);
+    curHL.mapClickListener = null;
+  }
   curHL.layerKey = null;
   curHL.iconPath = null;
   curHL.ring = null;
-
-  clearTimeout(curHL.timer);
-  curHL.timer = null;
 }
 
 function hlSpecies(layerKey, iconPath, ring, matchFn){
-  // clear any previous highlight first
+  // Clear any previous highlight first
   resetHL();
 
-  // make sure layer is visible
+  // Make sure layer is visible
   if(!LV[layerKey]){
     map.addLayer(ML[layerKey]);
-
     const tog = document.getElementById("tog-" + layerKey);
     if(tog) tog.classList.add("on");
-
     LV[layerKey] = true;
-
     const card = document.getElementById("card-" + layerKey);
     if(card) card.classList.remove("inactive");
   }
 
-  // save current highlight info
+  // Save current highlight info
   curHL.layerKey = layerKey;
   curHL.iconPath = iconPath;
   curHL.ring = ring;
 
-  // highlight ALL matching records
+  // Highlight all matching markers
   ML[layerKey].eachLayer(l => {
     const p = l.feature?.properties || {};
     const match = matchFn(p);
-
-    if(l.setIcon){
-      l.setIcon(match ? mkHL(iconPath) : mkIcon(iconPath, ring, 30));
-    }
-
-    if(match && l.bringToFront){
-      l.bringToFront();
-    }
+    if(l.setIcon) l.setIcon(match ? mkHL(iconPath) : mkIcon(iconPath, ring, 30));
+    if(match && l.bringToFront) l.bringToFront();
   });
 
-  // auto turn off after 1 second
-  clearTimeout(curHL.timer);
-  curHL.timer = setTimeout(() => {
+  // CHANGE 1: Persist highlight — clear only on next map click
+  curHL.mapClickListener = function(){
     resetHL();
-  }, 1000);
+  };
+  // Use setTimeout so this click doesn't immediately fire on the same event
+  setTimeout(() => {
+    map.once("click", curHL.mapClickListener);
+  }, 50);
 }
 
 function highlightBird(name){
-  hlSpecies(
-    "birds",
-    "assets/icons/bird.png",
-    "#4a90d9",
-    p => F.btoName(p) === name
-  );
+  hlSpecies("birds","assets/icons/bird.png","#4a90d9",p=>F.btoName(p)===name);
 }
-
 function highlightBat(name){
-  hlSpecies(
-    "bats",
-    "assets/icons/bat_icon_256.png",
-    "#9b59b6",
-    p => F.comNam(p) === name || F.species(p) === name
-  );
+  hlSpecies("bats","assets/icons/bat_icon_256.png","#9b59b6",p=>F.comNam(p)===name||F.species(p)===name);
 }
-
 function highlightAmph(name){
-  hlSpecies(
-    "amph",
-    "assets/icons/amphibian_icon_256.png",
-    "#16a085",
-    p => F.comNam(p) === name || F.species(p) === name
-  );
+  hlSpecies("amph","assets/icons/amphibian_icon_256.png","#16a085",p=>F.comNam(p)===name||F.species(p)===name);
 }
-
 function highlightInv(name){
-  hlSpecies(
-    "inv",
-    "assets/icons/invertebrate_icon_256.png",
-    "#d35400",
-    p => F.comNam(p) === name || F.species(p) === name
-  );
+  hlSpecies("inv","assets/icons/invertebrate_icon_256.png","#d35400",p=>F.comNam(p)===name||F.species(p)===name);
 }
-
+// CHANGE 4: Tree highlight function
+function highlightTree(species){
+  hlSpecies("trees","assets/icons/plant.png","#27ae60",p=>p.Species===species);
+}
 
 function mBar(id, data, color, unit, onClickFn){
   const el = document.getElementById(id);
   if(!el || !data || !data.length) return;
-
   const max = Math.max(...data.map(d => +(d.val) || 0));
-
   el.innerHTML = data.map(d => {
     const cls = "mini-bar-row" + (onClickFn ? " clickable-row" : "");
-    const title = onClickFn
-      ? 'title="' + d.label + ' - click to highlight on map"'
-      : 'title="' + d.label + '"';
-
-    return `
-      <div class="${cls}" ${title}>
-        <div class="mini-bar-label">${d.label}</div>
-        <div class="mini-bar-bg">
-          <div class="mini-bar-fill" style="width:${max ? (+d.val / max * 100) : 0}%; background:${color}"></div>
-        </div>
-        <div class="mini-bar-val">${d.val}${unit || ""}</div>
-      </div>
-    `;
+    const title = onClickFn ? 'title="'+d.label+' - click to highlight on map"' : 'title="'+d.label+'"';
+    return `<div class="${cls}" ${title}><div class="mini-bar-label">${d.label}</div><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${max?(+d.val/max*100):0}%;background:${color}"></div></div><div class="mini-bar-val">${d.val}${unit||""}</div></div>`;
   }).join("");
-
   if(onClickFn){
-    el.querySelectorAll(".clickable-row").forEach((row, i) => {
-      const label = data[i].label;
-
-      row.addEventListener("click", () => {
-        window[onClickFn](label);
-      });
+    el.querySelectorAll(".clickable-row").forEach((row,i)=>{
+      const label=data[i].label;
+      row.addEventListener("click",()=>{ window[onClickFn](label); });
     });
   }
 }
@@ -866,7 +825,7 @@ function bTile(name,badge,bbg,bcol,onClick){
 }
 
 function buildCharts(){
-  // FOSSITT with info tooltips
+  // FOSSITT bars
   const fossitt=STATS.habitats_area&&STATS.habitats_area.fossitt;
   if(fossitt){
     const el=document.getElementById("fossitt-bars");
@@ -937,8 +896,43 @@ function buildCharts(){
     document.getElementById("inv-stage-grid").innerHTML=sh;
   }
 
+  // CHANGE 4 & 5: Tree donut — legend click disabled, segment click triggers map highlight
   const ts=STATS.trees&&STATS.trees.by_species;
-  if(ts)new Chart(document.getElementById("tree-donut").getContext("2d"),{type:"doughnut",data:{labels:ts.map(t=>t.Species),datasets:[{data:ts.map(t=>+(t.n||0)),backgroundColor:ts.map(t=>TC[t.Species]||"#27ae60"),borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{font:{size:10},padding:7,boxWidth:10}},tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" trees"}}}}});
+  if(ts){
+    new Chart(document.getElementById("tree-donut").getContext("2d"),{
+      type:"doughnut",
+      data:{
+        labels:ts.map(t=>t.Species),
+        datasets:[{
+          data:ts.map(t=>+(t.n||0)),
+          backgroundColor:ts.map(t=>TC[t.Species]||"#27ae60"),
+          borderWidth:2,
+          borderColor:"#fff"
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        onClick:(evt,elements)=>{
+          // CHANGE 4: clicking a donut segment highlights that tree species on the map
+          if(elements&&elements.length>0){
+            const idx=elements[0].index;
+            const species=ts[idx]&&ts[idx].Species;
+            if(species) highlightTree(species);
+          }
+        },
+        plugins:{
+          legend:{
+            position:"right",
+            labels:{font:{size:10},padding:7,boxWidth:10},
+            // CHANGE 5: disable legend click so items don't get crossed out / toggled off
+            onClick:()=>{}
+          },
+          tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" trees"}}
+        }
+      }
+    });
+  }
 
   document.getElementById("cam-video-list").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
 
@@ -985,7 +979,7 @@ function openPO(id){
     amph:{title:"Amphibians",color:"#16a085",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.amphibians.total_records+'</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">'+s.amphibians.total_species+'</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-amph" style="margin-top:6px"></div>'},
     inv:{title:"Invertebrates",color:"#d35400",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.invertebrates.total_records+'</div><div class="po-chip-lbl">Records</div></div><div class="po-chip"><div class="po-chip-val">'+s.invertebrates.total_species+'</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Records by species</div><div id="po-inv" style="margin-top:6px"></div>'},
     trees:{title:"Tree planting",color:"#27ae60",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">'+s.trees.total_planted+'</div><div class="po-chip-lbl">Planted</div></div><div class="po-chip"><div class="po-chip-val">'+s.trees.total_species+'</div><div class="po-chip-lbl">Species</div></div></div><div class="po-sec">Species breakdown</div><div style="position:relative;height:300px;margin-top:8px"><canvas id="po-tree-donut"></canvas></div>'},
-    cameras:{title:"Wildlife cameras",color:"#e74c3c",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">3</div><div class="po-chip-lbl">Cameras</div></div><div class="po-chip"><div class="po-chip-val">11</div><div class="po-chip-lbl">Video clips</div></div><div class="po-chip"><div class="po-chip-val">6</div><div class="po-chip-lbl">Species</div></div></div><div id="po-cams" style="margin-top:8px"></div>'}
+    cameras:{title:"Wildlife cameras",color:"#e74c3c",html:'<div class="po-chips"><div class="po-chip"><div class="po-chip-val">2</div><div class="po-chip-lbl">Cameras</div></div><div class="po-chip"><div class="po-chip-val">11</div><div class="po-chip-lbl">Video clips</div></div><div class="po-chip"><div class="po-chip-val">6</div><div class="po-chip-lbl">Species</div></div></div><div id="po-cams" style="margin-top:8px"></div>'}
   };
   const cfg=defs[id];if(!cfg)return;
   document.getElementById("po-title").textContent=cfg.title;
@@ -1004,7 +998,31 @@ function openPO(id){
     if(id==="bats"&&STATS.bats&&STATS.bats.species_records)mBar("po-bats",STATS.bats.species_records.map(b=>({label:b["Common.Nam"]||b.Common_Nam||b.Species||"",val:+(b.n_records||0)})),"#9b59b6","","highlightBat");
     if(id==="amph"&&STATS.amphibians&&STATS.amphibians.records){const cnt={};STATS.amphibians.records.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});mBar("po-amph",Object.entries(cnt).map(([label,val])=>({label,val})),"#16a085","","highlightAmph");}
     if(id==="inv"&&STATS.invertebrates&&STATS.invertebrates.records){const cnt={};STATS.invertebrates.records.forEach(r=>{const n=r["Common.Nam"]||r.Common_Nam||r.Species||"Unknown";cnt[n]=(cnt[n]||0)+1;});mBar("po-inv",Object.entries(cnt).map(([label,val])=>({label,val})),"#d35400","","highlightInv");}
-    if(id==="trees"&&STATS.trees&&STATS.trees.by_species){new Chart(document.getElementById("po-tree-donut").getContext("2d"),{type:"doughnut",data:{labels:STATS.trees.by_species.map(t=>t.Species),datasets:[{data:STATS.trees.by_species.map(t=>+(t.n||0)),backgroundColor:STATS.trees.by_species.map(t=>TC[t.Species]||"#27ae60"),borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"right",labels:{font:{size:12},padding:10,boxWidth:12}},tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" trees"}}}}});}
+    if(id==="trees"&&STATS.trees&&STATS.trees.by_species){
+      // CHANGE 5: legend click disabled in popout tree donut too
+      new Chart(document.getElementById("po-tree-donut").getContext("2d"),{
+        type:"doughnut",
+        data:{
+          labels:STATS.trees.by_species.map(t=>t.Species),
+          datasets:[{data:STATS.trees.by_species.map(t=>+(t.n||0)),backgroundColor:STATS.trees.by_species.map(t=>TC[t.Species]||"#27ae60"),borderWidth:2,borderColor:"#fff"}]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          onClick:(evt,elements)=>{
+            if(elements&&elements.length>0){
+              const idx=elements[0].index;
+              const species=STATS.trees.by_species[idx]&&STATS.trees.by_species[idx].Species;
+              if(species) highlightTree(species);
+            }
+          },
+          plugins:{
+            legend:{position:"right",labels:{font:{size:12},padding:10,boxWidth:12},onClick:()=>{}},
+            tooltip:{callbacks:{label:c=>c.label+": "+c.raw+" trees"}}
+          }
+        }
+      });
+    }
     if(id==="cameras")document.getElementById("po-cams").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block" style="margin-bottom:10px"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
   });
 }
