@@ -562,7 +562,6 @@ function closeLb(){const vid=document.getElementById("lbVideo");vid.pause();vid.
 document.getElementById("lbClose").onclick=closeLb;
 document.getElementById("lightbox").addEventListener("click",e=>{if(e.target.id==="lightbox")closeLb();});
 
-// CHANGE 2: Removed Cam 3 (stream video not working)
 const CAM={
   "Cam 1":[
     {file:"Cam 1 - Badger.MP4",label:"Badger"},
@@ -578,7 +577,10 @@ const CAM={
     {file:"Cam 2 - Deer.MP4",label:"Sika Deer"},
     {file:"Cam 2 - Deer 2.MP4",label:"Sika Deer (2)"},
     {file:"Cam 2 - Pheasant.MP4",label:"Pheasant"}
-  ]
+  ],
+"Cam 3":[
+  {file:"Cam 3 - Little Dargle Stream.jpg",label:"Little Dargle Stream — photo",type:"image"}
+]
 };
 
 function mkIcon(p,ring,sz){sz=sz||30;const inner=Math.round(sz*0.58);return L.divIcon({className:"",html:'<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:#fff;border:2.5px solid '+ring+';display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.28);overflow:hidden"><img src="'+p+'" style="width:'+inner+'px;height:'+inner+'px;object-fit:contain;display:block"/></div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});}
@@ -677,7 +679,7 @@ ML.cameras=L.geoJSON(GJ_CAMERAS,{
     const camName=F.cam(f.properties)||"Camera";
     const vids=CAM[camName]||[];
     l.bindTooltip("<strong>"+camName+"</strong><br/><span style='opacity:.75'>"+vids.length+" clips</span>",{direction:"top"});
-    const rows=vids.map(v=>'<div class="mp-vid-row" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+camName+'\',\'\')"><div class="mp-vid-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("");
+    const rows=vids.map(v=>'<div class="mp-vid-row" onclick="lb(\''+(v.type==="image"?"image":"video")+'\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+camName+'\',\'\')"><div class="mp-vid-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("");
     l.bindPopup('<div class="mp"><div class="mp-body"><div class="mp-title">'+camName+"</div></div>"+'<div class="mp-videos">'+rows+"</div></div>",{maxWidth:260});
   }
 }).addTo(map);
@@ -934,7 +936,7 @@ function buildCharts(){
     });
   }
 
-  document.getElementById("cam-video-list").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
+  document.getElementById("cam-video-list").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\''+(v.type==="image"?"image":"video")+'\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
 
   mBar("cam-species-bars",[{label:"Sika Deer",val:4},{label:"Badger",val:2},{label:"Red Fox",val:2},{label:"Robin",val:1},{label:"Sparrowhawk",val:1},{label:"Pheasant",val:1}],"#e74c3c");
 }
