@@ -196,8 +196,17 @@ html,body{height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,
         </div>
         <div class="lp-group">
           <div class="lp-group-label">Surveys</div>
-          <div class="lp-row" data-layer="hab_area"><div class="lp-tog on" id="tog-hab_area"></div><div class="lp-dot" style="background:#3a9a40"></div><div class="lp-name">Area habitats</div></div>
-          <div class="lp-row" data-layer="hab_lin"><div class="lp-tog on" id="tog-hab_lin"></div><div class="lp-dot" style="background:#7ab648"></div><div class="lp-name">Linear habitats</div></div>
+<div class="lp-row" data-layer="hab_area">
+  <div class="lp-tog on" id="tog-hab_area"></div>
+  <div class="lp-dot" style="background:#1fc7a6"></div>
+  <div class="lp-name">Area habitats</div>
+</div>
+
+<div class="lp-row" data-layer="hab_lin">
+  <div class="lp-tog on" id="tog-hab_lin"></div>
+  <div class="lp-dot" style="background:#00e0c6"></div>
+  <div class="lp-name">Linear habitats</div>
+</div>
           <div class="lp-row" data-layer="birds"><div class="lp-tog on" id="tog-birds"></div><div class="lp-dot" style="background:#4a90d9"></div><div class="lp-name">Bird species</div></div>
           <div class="lp-row" data-layer="bats"><div class="lp-tog" id="tog-bats"></div><div class="lp-dot" style="background:#9b59b6"></div><div class="lp-name">Bat species</div></div>
         </div>
@@ -562,6 +571,7 @@ function closeLb(){const vid=document.getElementById("lbVideo");vid.pause();vid.
 document.getElementById("lbClose").onclick=closeLb;
 document.getElementById("lightbox").addEventListener("click",e=>{if(e.target.id==="lightbox")closeLb();});
 
+// CHANGE 2: Removed Cam 3 (stream video not working)
 const CAM={
   "Cam 1":[
     {file:"Cam 1 - Badger.MP4",label:"Badger"},
@@ -577,10 +587,7 @@ const CAM={
     {file:"Cam 2 - Deer.MP4",label:"Sika Deer"},
     {file:"Cam 2 - Deer 2.MP4",label:"Sika Deer (2)"},
     {file:"Cam 2 - Pheasant.MP4",label:"Pheasant"}
-  ],
-"Cam 3":[
-  {file:"Cam 3 - Little Dargle Stream.jpg",label:"Little Dargle Stream photo",type:"image"}
-]
+  ]
 };
 
 function mkIcon(p,ring,sz){sz=sz||30;const inner=Math.round(sz*0.58);return L.divIcon({className:"",html:'<div style="width:'+sz+'px;height:'+sz+'px;border-radius:50%;background:#fff;border:2.5px solid '+ring+';display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.28);overflow:hidden"><img src="'+p+'" style="width:'+inner+'px;height:'+inner+'px;object-fit:contain;display:block"/></div>',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});}
@@ -592,7 +599,32 @@ let curBM="satellite";
 map.on("zoomend",()=>{document.getElementById("zoomBadge").textContent="zoom: "+map.getZoom();});
 document.querySelectorAll(".bm-btn").forEach(btn=>{btn.addEventListener("click",()=>{const bm=btn.dataset.bm;if(bm===curBM)return;map.removeLayer(basemaps[curBM]);map.addLayer(basemaps[bm]);basemaps[bm].bringToBack();curBM=bm;document.querySelectorAll(".bm-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.getElementById("basemap-pill").textContent=bm==="osm"?"Street":bm==="satellite"?"Satellite":"Topo";});});
 
-const FC={WD4:"#5a7a3a",WD1:"#2d5c2a",WD2:"#3a6e30",WD3:"#4a7835",WS1:"#7ab648",WS2:"#8fc455",GS1:"#c8e06a",GS3:"#b8d44a",GS4:"#9ec830",GS2:"#d4e880",HD1:"#c8a040",FW1:"#3a6aad",FW4:"#5580c0",WL1:"#4a9060",DEFAULT:"#8aaa6a"};
+// Habitat colour palette matched to the attached map style
+// Area habitats
+const FC = {
+  // Grasslands
+  GS3: "#d4d861",   // Dry-humid acid grassland - yellow olive
+  GS4: "#e98965",   // Wet grassland - salmon / orange
+  GS1: "#c7dc72",   // Improved grassland - pale yellow-green
+  GS2: "#e0e88a",   // Calcareous grassland - light lime
+
+  // Bracken / heath-like
+  HD1: "#d13aa2",   // Dense bracken - magenta/pink
+
+  // Woodland / scrub
+  WD1: "#9b8e7f",   // Broadleaved woodland - warm grey/taupe
+  WD4: "#7d4aa8",   // Conifer plantation - purple
+  WS1: "#1fc7a6",   // Scrub - turquoise/green
+
+  // Wet woodland / other woodland
+  WL1: "#1fd6c2",   // Hedgerow / wet woodland type - aqua
+
+  // Freshwater / linear fallback
+  FW1: "#00a9e6",   // Eroding/upland rivers - bright blue
+  FW4: "#8b3fd1",   // Drainage ditches - violet
+
+  DEFAULT: "#9aa69c"
+};
 const TC={Alder:"#2d6a4f",Birch:"#74c69d",Holly:"#1b4332",Oak:"#40916c",Rowan:"#95d5b2",Willow:"#52b788"};
 
 function popup(pic,title,rows,note){
@@ -609,23 +641,72 @@ const LV={study:true,hab_area:true,hab_lin:true,birds:true,bats:false,amph:false
 ML.study=L.geoJSON(GJ_STUDY,{style:{color:"#39c6bc",weight:2.5,fillColor:"#176560",fillOpacity:0.06,dashArray:"6,4"}}).addTo(map);
 ML.study.on("add",()=>{try{const b=ML.study.getBounds();if(b.isValid())map.fitBounds(b,{padding:[40,40]});}catch(e){}});
 
-ML.hab_area=L.geoJSON(GJ_HAB_AREA,{
-  style:f=>{const c=FC[f.properties.Fossitt_primary||"DEFAULT"]||FC.DEFAULT;return{color:c,weight:1,fillColor:c,fillOpacity:0.55};},
-  onEachFeature:(f,l)=>{
-    const p=f.properties,area=p["Area__ha_"]||p["Area..ha."]||null;
-    const code=p.Fossitt_primary||p.Fossitt||"";
-    l.bindTooltip("<strong>"+(p.FossLayer||code||"Habitat")+"</strong>",{sticky:true,direction:"top"});
-    const desc=(FOSSITT_DESC[code]||FOSSITT_DESC["DEFAULT"]);
-    l.bindPopup(popup(null,p.FossLayer||p.Fossitt||"Habitat",[["Code",p.Fossitt||""],["Area",area?(+area).toFixed(3)+" ha":""],["Mosaic",p.is_mosaic?"Yes - "+p.mosaic_codes:"No"]],desc));
+ML.hab_area = L.geoJSON(GJ_HAB_AREA, {
+  style: f => {
+    const c = FC[f.properties.Fossitt_primary || f.properties.Fossitt || "DEFAULT"] || FC.DEFAULT;
+    return {
+      color: "#3b3b3b",
+      weight: 0.7,
+      fillColor: c,
+      fillOpacity: 0.58,
+      opacity: 0.65
+    };
+  },
+  onEachFeature: (f, l) => {
+    const p = f.properties, area = p["Area__ha_"] || p["Area..ha."] || null;
+    const code = p.Fossitt_primary || p.Fossitt || "";
+    l.bindTooltip("<strong>" + (p.FossLayer || code || "Habitat") + "</strong>", {
+      sticky: true,
+      direction: "top"
+    });
+    const desc = (FOSSITT_DESC[code] || FOSSITT_DESC["DEFAULT"]);
+    l.bindPopup(
+      popup(
+        null,
+        p.FossLayer || p.Fossitt || "Habitat",
+        [
+          ["Code", p.Fossitt || ""],
+          ["Area", area ? (+area).toFixed(3) + " ha" : ""],
+          ["Mosaic", p.is_mosaic ? "Yes - " + p.mosaic_codes : "No"]
+        ],
+        desc
+      )
+    );
   }
 }).addTo(map);
+const LINE_FC = {
+  FW1: "#00a9e6",   // Eroding / upland rivers
+  FW4: "#8b3fd1",   // Drainage ditches
+  WL1: "#00e0c6",   // Hedgerow / wet linear woodland
+  DEFAULT: "#00c7b7"
+};
 
-ML.hab_lin=L.geoJSON(GJ_HAB_LIN,{
-  style:f=>{const l=f.properties.FossLayer||"";let c="#5580c0";if(l.startsWith("WL"))c="#4a9060";if(l.startsWith("FW1"))c="#3a6aad";return{color:c,weight:2.5,opacity:0.85};},
-  onEachFeature:(f,l)=>{
-    const p=f.properties;
-    l.bindTooltip("<strong>"+(p.FossLayer||"Linear habitat")+"</strong>",{sticky:true,direction:"top"});
-    l.bindPopup(popup(null,p.FossLayer||"Linear habitat",[["Length",p.length_m?Math.round(p.length_m)+" m":""]],null));
+ML.hab_lin = L.geoJSON(GJ_HAB_LIN, {
+  style: f => {
+    const raw = f.properties.FossLayer || f.properties.Fossitt || "";
+    const code = raw.substring(0, 3);
+    const c = LINE_FC[code] || LINE_FC.DEFAULT;
+
+    return {
+      color: c,
+      weight: code === "FW1" ? 3.2 : 2.4,
+      opacity: 0.95
+    };
+  },
+  onEachFeature: (f, l) => {
+    const p = f.properties;
+    l.bindTooltip("<strong>" + (p.FossLayer || "Linear habitat") + "</strong>", {
+      sticky: true,
+      direction: "top"
+    });
+    l.bindPopup(
+      popup(
+        null,
+        p.FossLayer || "Linear habitat",
+        [["Length", p.length_m ? Math.round(p.length_m) + " m" : ""]],
+        null
+      )
+    );
   }
 }).addTo(map);
 
@@ -679,7 +760,7 @@ ML.cameras=L.geoJSON(GJ_CAMERAS,{
     const camName=F.cam(f.properties)||"Camera";
     const vids=CAM[camName]||[];
     l.bindTooltip("<strong>"+camName+"</strong><br/><span style='opacity:.75'>"+vids.length+" clips</span>",{direction:"top"});
-    const rows=vids.map(v=>'<div class="mp-vid-row" onclick="lb(\''+(v.type==="image"?"image":"video")+'\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+camName+'\',\'\')"><div class="mp-vid-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("");
+    const rows=vids.map(v=>'<div class="mp-vid-row" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+camName+'\',\'\')"><div class="mp-vid-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("");
     l.bindPopup('<div class="mp"><div class="mp-body"><div class="mp-title">'+camName+"</div></div>"+'<div class="mp-videos">'+rows+"</div></div>",{maxWidth:260});
   }
 }).addTo(map);
@@ -936,7 +1017,7 @@ function buildCharts(){
     });
   }
 
-  document.getElementById("cam-video-list").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\''+(v.type==="image"?"image":"video")+'\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
+  document.getElementById("cam-video-list").innerHTML=Object.entries(CAM).map(([cam,vids])=>'<div class="cam-block"><div class="cam-hdr"><div class="cam-dot"></div>'+cam+"</div>"+'<div class="cam-videos">'+vids.map(v=>'<div class="cam-video-item" onclick="lb(\'video\',\'assets/videos/'+v.file+'\',\''+v.label+" - "+cam+'\',\'\')"><div class="cam-play"><svg width="7" height="7" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg></div>'+v.label+"</div>").join("")+"</div></div>").join("");
 
   mBar("cam-species-bars",[{label:"Sika Deer",val:4},{label:"Badger",val:2},{label:"Red Fox",val:2},{label:"Robin",val:1},{label:"Sparrowhawk",val:1},{label:"Pheasant",val:1}],"#e74c3c");
 }
