@@ -1,26 +1,22 @@
 /* Ticknock v2 - 3D opening orbit (Cesium).
-   Desktop only, first visit per browser only, skipped for reduced-motion users.
-   Force it with ?intro=1, suppress with ?intro=0. Any failure falls straight through to the 2D dashboard. */
+   Desktop only, shown on every page load unless suppressed with ?intro=0.
+   Skipped for reduced-motion/save-data users. Any failure falls straight through to the 2D dashboard. */
 'use strict';
 
 TD.intro = (function () {
-  const KEY = "ticknock_intro_seen_v2";
   const LOAD_TIMEOUT = 9000;     // give up on Cesium after this
   const BUTTON_DELAY = 2600;     // ms after orbit starts before the button fades in
   const RANGE = 950, PITCH = -26; // metres from site centre, degrees
   let viewer = null, raf = null, done = false;
 
   const q = new URLSearchParams(location.search).get("intro");
-  const seen = () => { try { return localStorage.getItem(KEY) === "1"; } catch (e) { return false; } };
-  const markSeen = () => { try { localStorage.setItem(KEY, "1"); } catch (e) {} };
-
   function shouldRun() {
-    if (q === "1") return true;
     if (q === "0") return false;
+    if (q === "1") return true;
     if (TD.isMobile()) return false;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
     if (navigator.connection && navigator.connection.saveData) return false;
-    return !seen();
+    return true;
   }
 
   function loadCesium() {
@@ -42,7 +38,6 @@ TD.intro = (function () {
 
   function finish(immediate, failed) {
     if (done) return; done = true;
-    if (!failed) markSeen();
     const ov = TD.$("#intro");
     ov.classList.add("leaving");
     setTimeout(() => {
