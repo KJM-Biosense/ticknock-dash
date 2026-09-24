@@ -4,7 +4,7 @@
 window.TD = window.TD || {};
 
 TD.ASSETS = "assets/";
-TD.CESIUM_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IktDSlRSay1GTDRPQzloeWwiLCJqdGkiOiJhNTFjY2QyYi05Y2ZhLTRhYjUtYjI3OC1lMmRmMjY2OWJjZjUiLCJpZCI6NTA2NDE5LCJzdWIiOiJLSk0tQmlvc2Vuc2UiLCJpc3MiOiJodHRwczovL2FwaS5jZXNpdW0uY29tIiwiYXVkIjoiYmlvc2Vuc2UiLCJpYXQiOjE3OTAyMzc4MDZ9.VQstiNn5WgdH0Wepa5WeAkyxJyzetg_kD85nv0HeEiM";
+TD.CESIUM_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IlNUdm5xNGlPU3A0cHpOYlMiLCJqdGkiOiJhNTFjY2QyYi05Y2ZhLTRhYjUtYjI3OC1lMmRmMjY2OWJjZjUiLCJpZCI6NTA2NDE5LCJzdWIiOiJLSk0tQmlvc2Vuc2UiLCJpc3MiOiJodHRwczovL2FwaS5jZXNpdW0uY29tIiwiYXVkIjoiYmlvc2Vuc2UiLCJpYXQiOjE3OTAyODA2NzF9.H-_EmnMfx7k9Nf5I8HTsYfD-Nuq-h2_m92Vk-eq_AVU";
 TD.CESIUM_URL = "https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/";
 
 /* Categorical palette - fixed order, validated for colour-blind separation on adjacent slices.
