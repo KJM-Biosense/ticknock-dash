@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="css/dashboard.css?v=20260924b">
+<link rel="stylesheet" href="css/dashboard.css?v=20260930a">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
@@ -20,7 +20,7 @@
       <div id="map" aria-label="Map of Ticknock Lands"></div>
 
       <div class="layer-panel" id="layerPanel">
-        <div class="lp-head" id="lpHead" role="button" tabindex="0"><span>Layers</span><span class="lp-caret">▾</span></div>
+        <div class="lp-head" id="lpHead" role="button" tabindex="0"><span class="lp-title">Layers <span class="info-dot" tabindex="0" onclick="event.stopPropagation()">i<span class="tip">Use the layer list to switch survey layers on and off, and the cards in the Biodiversity snapshot to explore each survey. Click any chart segment or species to highlight its records on the map.</span></span></span><span class="lp-caret">▾</span></div>
         <button type="button" class="lp-close" id="lpClose" aria-label="Close layers">×</button>
         <div class="lp-list" id="layerList"></div>
       </div>
@@ -78,12 +78,12 @@
   <button type="button" class="intro-skip" id="introSkip">Skip ›</button>
 </div>
 
-<script src="dashboard_data/data.js?v=20260924b"></script>
-<script src="data/data_v2.js?v=20260924b"></script>
-<script src="js/config.js?v=20260924b"></script>
-<script src="js/core.js?v=20260924b"></script>
-<script src="js/layers.js?v=20260924b"></script>
-<script src="js/intro3d.js?v=20260924b"></script>
-<script src="js/app.js?v=20260924b"></script>
+<script src="dashboard_data/data.js?v=20260930a"></script>
+<script src="data/data_v2.js?v=20260930a"></script>
+<script src="js/config.js?v=20260930a"></script>
+<script src="js/core.js?v=20260930a"></script>
+<script src="js/layers.js?v=20260930a"></script>
+<script src="js/intro3d.js?v=20260930a"></script>
+<script src="js/app.js?v=20260930a"></script>
 </body>
 </html>
