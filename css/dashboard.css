@@ -459,3 +459,25 @@ button{font-family:inherit;color:inherit;font-size:inherit}
   .layers-fab{top:calc(10px + env(safe-area-inset-top))}
   .bm-3d,.bm-sep{display:none}
 }
+
+/* ---------- Sept 2026 additions ---------- */
+.split-narrow{grid-template-columns:minmax(240px,300px) minmax(0,1fr)}
+.donut-stack{grid-template-columns:1fr!important;gap:12px!important;justify-items:center}
+.donut-stack .donut-canvas{width:220px!important;height:220px!important;max-width:none!important}
+.donut-stack .donut-legend{width:100%}
+.donut-stack .lg-name i{display:none!important}
+.media{margin:0;display:flex;flex-direction:column;gap:6px}
+.media video,.media img{width:100%;max-height:420px;border-radius:12px;background:#0c1716;display:block;object-fit:cover}
+.media img{cursor:zoom-in}
+.media figcaption{font-size:11.5px;color:var(--mu)}
+.media figcaption span{opacity:.8;margin-left:6px}
+.media-ph{aspect-ratio:16/9;border-radius:12px}
+.card-text{font-size:12px;line-height:1.55;color:#35504d}
+.mk-sq{border-radius:7px!important}
+.bar-row.sel{background:var(--gs);box-shadow:inset 3px 0 0 var(--g)}
+.hab-detail{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.mp-credit{font-size:10px;color:var(--mu);margin-top:6px}
+.lp-title{display:inline-flex;align-items:center;gap:6px}
+.lp-title .info-dot .tip{left:-10px;right:auto;text-transform:none;letter-spacing:0;font-weight:400}
+.cam-spp{border-color:#b9d9d3;background:var(--gs)}
+@media (max-width:1100px){.split-narrow{grid-template-columns:1fr}}
