@@ -58,7 +58,8 @@
   D.invSpecies = speciesOf(D.inv, invStock);
 
   /* Trees */
-  D.trees = GJ_TREES.features.map(f => ({ name: f.properties.Species || "Unknown" }));
+  const TREES_FC = (typeof GJ_TREES_V2 !== "undefined") ? GJ_TREES_V2 : GJ_TREES;
+  D.trees = TREES_FC.features.map(f => ({ name: f.properties.Species || "Unknown" }));
   D.treeSpecies = TD.tally(D.trees, r => r.name).map(s => Object.assign(s, { sci: (TD.TREES[s.name] || {}).sci || "", pic: TD.TREES[s.name] ? A("tree-pics/" + TD.TREES[s.name].file) : null }));
 
   /* Habitats (computed from polygons; label = FossLayer) */
@@ -78,7 +79,8 @@
   D.artSemi = Object.entries(art).map(([k, ha]) => ({ name: k, ha, pct: ha / D.habTotalHa * 100 }));
   D.pctSemi = Math.round(((art["Semi-Natural"] || 0) / D.habTotalHa) * 100);
 
-  D.lin = GJ_HAB_LIN.features.map(f => ({ layer: f.properties.FossLayer || "Unclassified", m: +(f.properties.length_m || 0) }));
+  const linLayer = l => (/^WL1\b/i.test(l || "") ? "WL1" : (l || "Unclassified"));   // "WL1 - SR" is also hedgerow
+  D.lin = GJ_HAB_LIN.features.map(f => ({ layer: linLayer(f.properties.FossLayer), m: +(f.properties.length_m || 0) }));
   const linBy = {}; D.lin.forEach(l => { linBy[l.layer] = (linBy[l.layer] || 0) + l.m; });
   D.linTypes = Object.entries(linBy).map(([k, m]) => ({ name: k, code: code3(k), n: Math.round(m) })).sort((a, b) => b.n - a.n);
   D.linTotal = D.linTypes.reduce((s, t) => s + t.n, 0);
@@ -97,6 +99,9 @@
       perCount: rows.length ? insects / rows.length : 0,
       groups: D.fitGroupOrder.filter(k => g[k]).map(k => ({ name: k, n: g[k] })) };
   };
+
+  /* Polliknow devices */
+  D.polli = ((typeof GJ_POLLIKNOW !== "undefined") ? GJ_POLLIKNOW.features : []).map(f => ({ name: f.properties.name, plant: String(f.properties.name || "").replace(/\s*\d+$/, ""), ll: [f.geometry.coordinates[1], f.geometry.coordinates[0]] }));
 
   /* Cameras */
   D.cams = ((typeof GJ_CAMERAS_V2 !== "undefined") ? GJ_CAMERAS_V2.features.map(f => ({ name: f.properties.name, notes: f.properties.notes, ll: [f.geometry.coordinates[1], f.geometry.coordinates[0]] }))
@@ -119,7 +124,8 @@
     const row = TD.chips(el, chips, { onSelect: id => { if (panes[id]) show(id); } });
     const host = TD.h(`<div class="pane"></div>`); el.appendChild(host);
     function show(id) { row.setActive(id); host.innerHTML = ""; panes[id](host); }
-    show(initial);
+    const first = (chips.find(c => c.id && panes[c.id]) || {}).id;
+    show(initial && panes[initial] ? initial : first);
     if (extra) extra(el, show);
   }
   const hlBy = (key, field) => name => TD.highlight(key, p => {
@@ -134,13 +140,13 @@
     /* o: key, title, recs, species, colours, recTip, sppTip, obsList(bool), stages(bool), placeholderIcon, unit */
     const pick = hlBy(o.key);
     const chips = () => [
-      { id: "records", val: o.recs.length, lbl: "Records", tip: o.recTip },
-      { id: "species", val: o.species.length, lbl: "Species", tip: o.sppTip }];
+      { id: "species", val: o.species.length, lbl: "Species", tip: o.sppTip },
+      { id: "records", val: o.recs.length, lbl: "Records", tip: o.recTip }];
     const donutOf = (host, big) => { TD.section(host, "Species breakdown", "Records per species. Click a segment or a name to highlight those records on the map."); TD.donut(host, { items: o.species.map(s => ({ name: s.name, n: s.n, sub: s.sci })), colours: o.colours, unit: "records", onPick: pick, big }); };
     const cardsOf = (host, big) => TD.cards(host, o.species.map(s => ({ name: s.name, sci: s.sci, pic: s.pic, meta: s.n + (s.n === 1 ? " record" : " records") })), { onPick: pick, placeholderIcon: o.icon });
     return {
       card(el) {
-        paneCard(el, chips(), { records: h => donutOf(h), species: h => cardsOf(h) }, "records",
+        paneCard(el, chips(), { records: h => donutOf(h), species: h => cardsOf(h) }, null,
           o.stages ? (el) => { const b = TD.h(`<button type="button" class="link-btn">Life stages ›</button>`); b.onclick = () => TD.openExpanded(o.key, { pane: "stages" }); el.appendChild(b); } : null);
       },
       expand(el, st) {
@@ -148,12 +154,13 @@
           records: h => { donutOf(h, true); if (o.story) o.story(h, "records"); if (o.obsList) { TD.section(h, "All records"); TD.obsList(h, o.recs, { colour: TD.C[o.key], onPick: r => pick(r.name) }); } },
           species: h => { TD.section(h, "Species recorded", "Click a photo to enlarge it."); cardsOf(h, true); if (o.story) o.story(h, "species"); }
         };
-        const extra = [];
-        if (o.stages) { extra.push({ id: "stages", label: "Life stages" }); panes.stages = h => lifeStages(h); }
-        TD.xvLayout(el, { chips: chips(), panes, initial: st.pane || "records", extraTabs: extra });
+        const ch = chips();
+        if (o.stages) { ch.push({ id: "stages", val: invStageNames().length, lbl: "Life stages", tip: "Different life stages recorded, from caterpillar and cocoon to adult." }); panes.stages = h => lifeStages(h); }
+        TD.xvLayout(el, { chips: ch, panes, initial: st.pane });
       }
     };
   }
+  function invStageNames() { return Array.from(new Set(D.inv.map(r => (r.notes || "").replace(/ (male|female)$/i, "")).filter(Boolean))); }
   function lifeStages(h) {
     TD.section(h, "Life stages recorded", "Several species were recorded at more than one life stage, which indicates they are breeding on site.");
     const recStages = new Set(D.inv.filter(r => !/^adult/i.test(r.notes)).map(r => r.name));
@@ -177,24 +184,33 @@
   R.study = {
     title: "Site boundary", group: "General", colour: TD.C.study, on: true,
     build() { return L.geoJSON(GJ_STUDY, { style: { color: "#39c6bc", weight: 2.5, fillColor: "#176560", fillOpacity: 0.06, dashArray: "6,4" }, interactive: false }); },
-    chips() { return [{ val: STATS.site.area_ha, lbl: "Hectares" }, { val: STATS.site.perim_km, lbl: "Perimeter (km)" }]; },
+    chips() { return [{ val: STATS.site.area_ha, lbl: "Hectares" }, { val: (STATS.site.area_m2 || 0).toLocaleString("en-IE"), lbl: "Square metres" }, { val: STATS.site.perim_km, lbl: "Perimeter (km)" }]; },
     card(el) { TD.chips(el, this.chips()); },
     expand(el) {
-      TD.chips(el, this.chips().concat([{ val: (STATS.site.area_m2 || 0).toLocaleString("en-IE"), lbl: "Square metres" }, { val: (D.routeLen / 1000).toFixed(2), lbl: "Walking route (km)" }]));
-      el.appendChild(TD.h(`<div class="prose"><p>The Ticknock Lands study area covers ${STATS.site.area_ha} ha of upland and transitional habitat on the slopes of the Dublin Mountains, surveyed in 2025-2026.</p>
-        <p>Use the layer list to switch survey layers on and off, and the cards in the Biodiversity snapshot to explore each survey. Click any chart segment or species to highlight its records on the map.</p></div>`));
+      TD.chips(el, this.chips());
+      el.appendChild(TD.h(`<div class="prose"><p>The Ticknock Lands study area covers ${STATS.site.area_ha} ha of upland and transitional habitat on the slopes of the Dublin Mountains, surveyed in 2025-2026.</p></div>`));
+      TD.media(el, TD.SITE_VIDEO, "Ticknock from the air");
     }
   };
 
   /* ---- Walking route (map only) ---- */
   D.routeLen = ((typeof GJ_ROUTE !== "undefined") ? GJ_ROUTE.features : []).reduce((s, f) => s + (f.properties.length_m || 0), 0);
   R.route = {
-    title: "Walking route", group: "General", colour: TD.C.route, on: true, noCard: true, lineSwatch: true,
+    title: "Walking route", group: "General", colour: TD.C.route, on: true, lineSwatch: true,
+    chips() { return [{ val: (D.routeLen / 1000).toFixed(2), lbl: "Kilometres of looped route" }, { val: (typeof GJ_ROUTE !== "undefined" ? GJ_ROUTE.features.length : 0), lbl: "Route sections" }]; },
+    text: "In 2026 a looped walking route was set out to allow safe access around the site for visitors. This includes sections of low-impact timber walkway across the wet grassland which helps to protect this sensitive habitat from damage and disturbance.",
+    card(el) { TD.chips(el, this.chips()); el.appendChild(TD.h(`<p class="card-text">${E(this.text)}</p>`)); },
+    expand(el) {
+      TD.chips(el, this.chips());
+      const [a, b] = TD.split(el);
+      a.appendChild(TD.h(`<div class="prose"><p>${E(this.text)}</p></div>`));
+      TD.media(b, TD.ROUTE_PHOTO, "Timber walkway across the wet grassland");
+    },
     build() {
       if (!(typeof GJ_ROUTE !== "undefined")) return L.layerGroup();
       const tip = f => popup(null, "Walking route", [["Section", f.properties.fid + " of " + GJ_ROUTE.features.length], ["Section length", f.properties.length_m + " m"], ["Total route", D.routeLen.toLocaleString("en-IE") + " m"]]);
-      const casing = L.geoJSON(GJ_ROUTE, { style: { color: "#1b2a28", weight: 6, opacity: 0.45, lineCap: "round" }, interactive: false });
-      const line = L.geoJSON(GJ_ROUTE, { style: { color: TD.C.route, weight: 3, dashArray: "7,6", lineCap: "round" },
+      const casing = L.geoJSON(GJ_ROUTE, { pane: "routes", style: { color: "#1b2a28", weight: 6, opacity: 0.45, lineCap: "round" }, interactive: false });
+      const line = L.geoJSON(GJ_ROUTE, { pane: "routes", style: { color: TD.C.route, weight: 3, dashArray: "7,6", lineCap: "round" },
         onEachFeature: (f, l) => { l.bindTooltip("Walking route", { sticky: true }); l.bindPopup(tip(f)); } });
       return L.layerGroup([casing, line]);
     }
@@ -213,10 +229,10 @@
       });
     },
     chips() { return [
-      { id: "fossitt", val: D.habMapped, lbl: "Mapped areas", tip: "Number of habitat polygons mapped across the site. Several areas can share one habitat type." },
       { id: "types", val: D.habTypes.length, lbl: "Habitat types", tip: "Number of distinct Fossitt habitat types mapped on site." },
-      { id: "mosaic", val: D.nMosaic, lbl: "Mosaics", tip: "Areas where two or more habitat types are too intermingled to map separately." },
-      { id: "artnat", val: D.pctSemi + "%", lbl: "Semi-natural", tip: "Share of the mapped area that is semi-natural rather than artificial (e.g. conifer plantation)." }]; },
+      { id: "artnat", val: D.pctSemi + "%", lbl: "Semi-natural", tip: "Share of the mapped area that is semi-natural rather than artificial (e.g. conifer plantation)." },
+      { id: "fossitt", val: D.habMapped, lbl: "Mapped areas", tip: "Number of habitat polygons mapped across the site. Several areas can share one habitat type." },
+      { id: "mosaic", val: D.nMosaic, lbl: "Mosaic areas", tip: "Areas where two or more habitat types are too intermingled to map separately." }]; },
     fossittBars(h, big) {
       TD.section(h, "Fossitt habitat area", "Fossitt is Ireland's standard habitat classification. Hover the (i) on each row for a plain-English description.");
       TD.bars(h, { items: D.habTypes.map(t => ({ name: t.name, n: t.n, colour: TD.FC[t.code] || TD.FC.DEFAULT, info: habInfo(t.code) })), unit: " ha", fmt: n => n.toFixed(2) });
@@ -250,16 +266,16 @@
         "Each code describes a type of vegetation. WS1, for example, is scrub, and GS4 is wet grassland. Open the Habitat types chip for a plain-English description of each."]);
     },
     typesPane(h) {
-      const [a, b] = TD.split(h);
+      const [a, b] = TD.split(h, "narrow");
       TD.section(a, "Share of the site by habitat");
-      TD.donut(a, { items: D.habTypes.map(t => ({ name: t.name, n: +t.n.toFixed(2) })), colours: this.habColours(), unit: "ha", centreLabel: "hectares", big: true });
+      TD.donut(a, { items: D.habTypes.map(t => ({ name: t.name, n: +t.n.toFixed(2) })), colours: this.habColours(), unit: "ha", centreLabel: "hectares", big: true, stacked: true, pct: true });
       this.typeList(b);
     },
     mosaicPane(h) {
       const mosHa = D.habs.filter(x => x.mosaic).reduce((s, x) => s + x.ha, 0);
       const [a, b] = TD.split(h);
       TD.section(a, "Mosaic vs single-habitat area");
-      TD.donut(a, { items: [{ name: "Single habitat", n: +(D.habTotalHa - mosHa).toFixed(2) }, { name: "Mosaic", n: +mosHa.toFixed(2) }], colours: { "Single habitat": "#9fc9c2", "Mosaic": "#e98965" }, unit: "ha", centreLabel: "hectares", big: true });
+      TD.donut(a, { items: [{ name: "Single habitat", n: +(D.habTotalHa - mosHa).toFixed(2) }, { name: "Mosaic", n: +mosHa.toFixed(2) }], colours: { "Single habitat": "#9fc9c2", "Mosaic": "#e98965" }, unit: "ha", centreLabel: "hectares", big: true, pct: true });
       this.mosaicTable(b);
       const names = c => c.split(" / ").map(x => (TD.FOSSITT_NAMES[x] || x).toLowerCase()).join(" and ");
       TD.explain(b, "What is a mosaic?", [
@@ -270,7 +286,7 @@
       const cols = { "Semi-Natural": "#3a9a40", Artificial: "#c8a040" };
       const [a, b] = TD.split(h);
       TD.section(a, "Artificial vs semi-natural");
-      TD.donut(a, { items: D.artSemi.map(r => ({ name: r.name.replace("-N", "-n"), n: +r.ha.toFixed(2) })), colours: { "Semi-natural": cols["Semi-Natural"], Artificial: cols.Artificial }, unit: "ha", centreLabel: "hectares", big: true });
+      TD.donut(a, { items: D.artSemi.map(r => ({ name: r.name.replace("-N", "-n"), n: +r.ha.toFixed(2) })), colours: { "Semi-natural": cols["Semi-Natural"], Artificial: cols.Artificial }, unit: "ha", centreLabel: "hectares", big: true, pct: true });
       const by = {}; D.habs.filter(x => x.layer).forEach(x => { const k = x.art || "Unknown"; (by[k] = by[k] || {}); by[k][x.layer] = (by[k][x.layer] || 0) + x.ha; });
       Object.keys(by).sort((x, y) => (x === "Semi-Natural" ? -1 : 1)).forEach(k => {
         TD.section(b, (k === "Semi-Natural" ? "Semi-natural" : k) + " habitats here");
@@ -284,20 +300,21 @@
         "Artificial habitats have been created or heavily changed by people. Here, that means " + listOf(by.Artificial) + ".",
         "At " + D.pctSemi + "% semi-natural, most of Ticknock is habitat that native plants and wildlife are adapted to."]);
     },
-    card(el) { paneCard(el, this.chips(), { fossitt: h => this.fossittBars(h), types: h => this.fossittBars(h), mosaic: h => this.mosaicTable(h), artnat: h => this.artBar(h) }, "fossitt"); },
-    expand(el, st) { TD.xvLayout(el, { chips: this.chips(), initial: st.pane || "fossitt",
-      panes: { fossitt: h => this.areasPane(h), types: h => this.typesPane(h), mosaic: h => this.mosaicPane(h), artnat: h => this.artPane(h) } }); }
+    card(el) { paneCard(el, this.chips(), { fossitt: h => this.fossittBars(h), types: h => this.fossittBars(h), mosaic: h => this.mosaicTable(h), artnat: h => this.artBar(h) }, null); },
+    expand(el, st) { TD.xvLayout(el, { chips: this.chips(), initial: st.pane,
+      panes: { types: h => this.typesPane(h), artnat: h => this.artPane(h), fossitt: h => this.areasPane(h), mosaic: h => this.mosaicPane(h) } }); }
   };
 
   /* ---- Linear habitats ---- */
+  const linTitle = l => { const k = linLayer(l), c = code3(k); return TD.LINE_NAMES[c] && !/ - /.test(k) ? k + " - " + TD.LINE_NAMES[c] : k; };
   const linName = t => t.name + (TD.LINE_NAMES[t.code] && !/ - /.test(t.name) ? " - " + TD.LINE_NAMES[t.code] : "");
   R.hab_lin = {
     title: "Linear habitats", group: "Habitats", colour: TD.C.hab_lin, on: true,
     build() {
       return L.geoJSON(GJ_HAB_LIN, {
         style: f => { const c = code3(f.properties.FossLayer); return { color: TD.LINE_FC[c] || TD.LINE_FC.DEFAULT, weight: c === "FW1" ? 3.2 : 2.4, opacity: 0.95 }; },
-        onEachFeature: (f, l) => { const p = f.properties; l.bindTooltip(`<b>${E(p.FossLayer || "Linear habitat")}</b>`, { sticky: true, direction: "top" });
-          l.bindPopup(popup(null, E(p.FossLayer || "Linear habitat"), [["Type", E(TD.LINE_NAMES[code3(p.FossLayer)] || "")], ["Length", p.length_m ? Math.round(p.length_m) + " m" : ""]], E(habInfo(code3(p.FossLayer))))); }
+        onEachFeature: (f, l) => { const p = f.properties; l.bindTooltip(`<b>${E(linTitle(p.FossLayer))}</b>`, { sticky: true, direction: "top" });
+          l.bindPopup(popup(null, E(linTitle(p.FossLayer)), [["Type", E(TD.LINE_NAMES[code3(p.FossLayer)] || "")], ["Length", p.length_m ? Math.round(p.length_m) + " m" : ""]], E(habInfo(code3(p.FossLayer))))); }
       });
     },
     chips() { return [{ val: D.lin.length, lbl: "Features" }, { val: D.linTotal, lbl: "Total metres" }]; },
@@ -309,7 +326,7 @@
       const [a, b] = TD.split(el);
       TD.section(a, "Share of total length");
       const cols = {}; D.linTypes.forEach(t => { cols[linName(t)] = TD.LINE_FC[t.code] || TD.LINE_FC.DEFAULT; });
-      TD.donut(a, { items: D.linTypes.map(t => ({ name: linName(t), n: t.n })), colours: cols, unit: "m", centreLabel: "metres", big: true });
+      TD.donut(a, { items: D.linTypes.map(t => ({ name: linName(t), n: t.n })), colours: cols, unit: "m", centreLabel: "metres", big: true, pct: true });
       this.bars(b);
       const top = D.linTypes[0];
       TD.insights(b, [
@@ -337,19 +354,32 @@
     chips() {
       const conf = D.birdSpecies.filter(s => s.confirmed), ra = D.birdSpecies.filter(s => s.bocci === "Red" || s.bocci === "Amber");
       return [
-        { id: "records", val: D.birds.length, lbl: "Records", tip: "Individual bird observations across all survey visits." },
         { id: "species", val: D.birdSpecies.length, lbl: "Species", tip: "Distinct bird species recorded on site." },
+        { id: "records", val: D.birds.length, lbl: "Records", tip: "Individual bird observations across all survey visits." },
         { id: "breeding", val: conf.length, lbl: "Confirmed breeding", tone: "a", tip: "Species with confirmed breeding evidence (e.g. adults carrying food, recently fledged young)." },
-        { id: "redamber", val: ra.length, lbl: "Red / Amber listed", tone: "r", tip: "Species on the Red or Amber list of Birds of Conservation Concern in Ireland (BoCCI)." }];
+        { id: "redamber", val: ra.length, lbl: "Red / Amber listed", tone: "r", tip: "Species on the Red or Amber list of Birds of Conservation Concern in Ireland (BoCCI)." },
+        { id: "habitat", val: Object.keys(this.byHabitat()).filter(k => k !== "-").length, lbl: "Habitats used", tip: "Habitat types where birds were recorded. Click to see which species use each one." }];
     },
     recordBars(h) { TD.section(h, "Records by species", "Number of records per species. Click a row to highlight those records on the map.");
       TD.bars(h, { items: D.birdSpecies.map(s => ({ name: s.name, n: s.n })), colour: TD.C.birds, onPick: pickBird }); },
     birdCards(h, list, title, info) { TD.section(h, title, info);
       TD.cards(h, list.map(s => ({ name: s.name, pic: s.pic, meta: s.n + (s.n === 1 ? " record" : " records"), badge: "BoCCI " + s.bocci, badgeTone: boTone(s.bocci) })), { onPick: pickBird, placeholderIcon: TD.ICONS.birds }); },
-    habitatBars(h) {
-      const by = {}; D.birds.filter(r => r.habitat).forEach(r => { (by[r.habitat] = by[r.habitat] || new Set()).add(r.name); });
-      TD.section(h, "Species per habitat", "Number of distinct species recorded in each habitat type.");
-      TD.bars(h, { items: Object.entries(by).map(([k, s]) => ({ name: k, n: s.size, label: k + (TD.FOSSITT_NAMES[k] ? " - " + TD.FOSSITT_NAMES[k] : "") })).sort((a, b) => b.n - a.n), colour: TD.C.birds });
+    byHabitat() { const by = {}; D.birds.filter(r => r.habitat).forEach(r => { (by[r.habitat] = by[r.habitat] || new Set()).add(r.name); }); return by; },
+    habLabel(k) { return k === "-" ? "Species recorded adjacent to the site" : k + (TD.FOSSITT_NAMES[k] ? " - " + TD.FOSSITT_NAMES[k] : ""); },
+    habitatBars(h, big) {
+      const by = this.byHabitat();
+      const items = Object.entries(by).map(([k, s]) => ({ name: k, n: s.size, label: this.habLabel(k) })).sort((a, b) => (a.name === "-") - (b.name === "-") || b.n - a.n);
+      TD.section(h, "Species per habitat", "Number of distinct species recorded in each habitat type." + (big ? " Click a habitat to see its species." : ""));
+      const detail = TD.h(`<div class="hab-detail"></div>`);
+      const showHab = k => {
+        detail.innerHTML = "";
+        TD.$$(".bar-row", bars).forEach(r => r.classList.toggle("sel", r.title === k));
+        const sp = D.birdSpecies.filter(x => by[k].has(x.name));
+        TD.section(detail, this.habLabel(k) + " - " + sp.length + " species");
+        TD.cards(detail, sp.map(x => ({ name: x.name, pic: x.pic, badge: "BoCCI " + x.bocci, badgeTone: boTone(x.bocci) })), { onPick: pickBird, placeholderIcon: TD.ICONS.birds });
+      };
+      const bars = TD.bars(h, { items, colour: TD.C.birds, onPick: big ? showHab : null });
+      if (big) { h.appendChild(detail); showHab(items[0].name); }
     },
     evidence() {
       const LV = { Confirmed: 3, Probable: 2, Possible: 1 };
@@ -379,12 +409,12 @@
         "Every Red and Amber species using the site adds to its conservation value."]);
     },
     habitatStory(h) {
-      const by = {}; D.birds.filter(r => r.habitat).forEach(r => { (by[r.habitat] = by[r.habitat] || new Set()).add(r.name); });
-      const top = Object.entries(by).sort((a, b) => b[1].size - a[1].size)[0];
+      const by = this.byHabitat();
+      const top = Object.entries(by).filter(e => e[0] !== "-").sort((a, b) => b[1].size - a[1].size)[0];
       if (!top) return;
       TD.insights(h, [
-        { big: top[1].size, lbl: "species in " + (TD.FOSSITT_NAMES[top[0]] || top[0]).toLowerCase(), sub: "The richest habitat for birds on site" },
-        { big: Object.keys(by).length, lbl: "habitat types used by birds", sub: "Records with a habitat noted" }]);
+        { big: top[1].size, lbl: "species in " + (TD.FOSSITT_NAMES[top[0]] || top[0]).toLowerCase() },
+        { big: Object.keys(by).filter(k => k !== "-").length, lbl: "habitat types used by birds" }]);
       TD.explain(h, "Why compare habitats?", ["Different birds need different places to feed and nest. Warblers favour scrub, coal tits and goldcrests use the conifers, and snipe need wet ground. Keeping a mix of habitats keeps a mix of birds."]);
     },
     panes(big) { return {
@@ -392,9 +422,9 @@
       species: h => this.birdCards(h, D.birdSpecies, "Species recorded", "Click a photo to enlarge it, or 'Show on map' to highlight records."),
       breeding: h => { this.birdCards(h, D.birdSpecies.filter(s => s.confirmed), "Confirmed breeding species"); if (big) this.breedingStory(h); },
       redamber: h => { this.birdCards(h, D.birdSpecies.filter(s => s.bocci === "Red" || s.bocci === "Amber").sort((a, b) => (a.bocci === "Red" ? 0 : 1) - (b.bocci === "Red" ? 0 : 1)), "Red and Amber listed species", "Red = highest conservation concern; Amber = medium concern."); if (big) this.bocciStory(h); },
-      habitat: h => { this.habitatBars(h); if (big) this.habitatStory(h); } }; },
-    card(el) { const p = this.panes(); paneCard(el, this.chips(), p, "records", el => { const b = TD.h(`<button type="button" class="link-btn">Species per habitat ›</button>`); b.onclick = () => TD.openExpanded("birds", { pane: "habitat" }); el.appendChild(b); }); },
-    expand(el, st) { TD.xvLayout(el, { chips: this.chips(), panes: this.panes(true), initial: st.pane || "records", extraTabs: [{ id: "habitat", label: "Species per habitat" }] }); }
+      habitat: h => { this.habitatBars(h, big); if (big) this.habitatStory(h); } }; },
+    card(el) { paneCard(el, this.chips(), this.panes(), null); },
+    expand(el, st) { TD.xvLayout(el, { chips: this.chips(), panes: this.panes(true), initial: st.pane }); }
   };
 
   /* ---- Bats ---- */
@@ -438,7 +468,7 @@
 
   /* ---- Invertebrates ---- */
   R.inv = Object.assign({
-    title: "Invertebrates", group: "Species surveys", colour: TD.C.inv, icon: TD.ICONS.inv, on: false,
+    title: "Butterflies & moths", group: "Species surveys", colour: TD.C.inv, icon: TD.ICONS.inv, on: false,
     build() { return pointLayer(GJ_INV, "inv", TD.ICONS.inv, null,
       p => popup(invRec(p), E(prop(p, "Common.Nam") || p.Species), [["Species", `<i>${E(p.Species)}</i>`], ["Date", E(p.Date)], ["Stage", E(p.Notes)]]),
       p => `<b>${E(prop(p, "Common.Nam") || p.Species)}</b><br><span class="tt-sub">${E(p.Notes)}</span>`); }
@@ -450,11 +480,11 @@
         { big: bf + " / " + mo, lbl: "butterfly / moth species", sub: "Of " + D.invSpecies.length + " species recorded" },
         { big: young, lbl: "species breeding on site", sub: "Seen as caterpillars or cocoons" },
         span && { big: span.visits, lbl: "survey visits", sub: span.label }]);
-      TD.explain(h, "Why butterflies and moths?", [
+      TD.explain(h, "Butterflies and moths as biodiversity indicators", [
         "Butterflies and moths respond quickly to changes in their habitat, so they are widely used as indicators of how healthy a site is.",
         "Many depend on one or a few food plants as caterpillars. The cinnabar moth, for example, feeds on ragwort, and the peacock butterfly on nettles."]);
     },
-    recTip: "Invertebrate observations, mostly butterflies and moths.", sppTip: "Distinct invertebrate species identified on site." }));
+    recTip: "Butterfly and moth observations, including caterpillars and cocoons.", sppTip: "Distinct butterfly and moth species identified on site." }));
 
   /* ---- Pollinators (FIT Counts) ---- */
   const fitWord = n => n === 1 ? "insect" : "insects";
@@ -475,11 +505,19 @@
       D.fit.forEach(r => { const ic = TD.mkIcon(TD.ICONS.fit, TD.C.fit); const m = L.marker(r.ll, { icon: ic, props: r }); m._baseIcon = ic; m._fit = r;
         m.bindTooltip(`<b>FIT Count · ${fitDate(r)}</b><br><span class="tt-sub">${r.total} ${fitWord(r.total)} on ${E(flowerName(r.flower))}</span>`, { direction: "top", offset: [0, -12] });
         m.bindPopup(fitPopup(r), { maxWidth: 290 }); g.addLayer(m); });
+      D.polli.forEach(d => {
+        const ic = L.divIcon({ className: "", iconSize: [26, 26], iconAnchor: [13, 13], html: `<div class="mk mk-sq" style="width:26px;height:26px;border-color:${TD.C.polliknow}"><img src="${A(TD.ICONS.fit)}" style="width:15px;height:15px" alt=""></div>` });
+        const m = L.marker(d.ll, { icon: ic, props: { polliknow: true, name: d.name } }); m._baseIcon = ic; m._polli = d;
+        m.bindTooltip(`<b>Polliknow device</b><br><span class="tt-sub">${E(d.name)}</span>`, { direction: "top", offset: [0, -12] });
+        const pic = TD.POLLIKNOW_PICS[d.name];
+        m.bindPopup(popup(pic || null, "Polliknow device", [["Device", E(d.name)], ["Target plant", E(d.plant)]], "Pollinator monitoring device placed beside the target flower."), { maxWidth: 270 });
+        g.addLayer(m);
+      });
       return g;
     },
     setMonth(mo) {
       this.month = mo;
-      this.mapLayer.eachLayer(m => { const on = mo === "all" || m._fit.month === mo; m.setOpacity(on ? 1 : 0.18); if (m.setZIndexOffset) m.setZIndexOffset(on ? 500 : 0); });
+      this.mapLayer.eachLayer(m => { if (!m._fit) return; const on = mo === "all" || m._fit.month === mo; m.setOpacity(on ? 1 : 0.18); if (m.setZIndexOffset) m.setZIndexOffset(on ? 500 : 0); });
       TD.$$("[data-fit-month]").forEach(n => n.setActive && n.setActive(mo));
     },
     monthTabs(host, onChange) {
@@ -489,9 +527,18 @@
       return seg;
     },
     chips(s) { return [
-      { id: "counts", val: s.counts, lbl: "FIT Counts", tip: "Flower-Insect Timed Counts: 10-minute counts of insects visiting a 50 × 50 cm patch of a target flower." },
       { id: "insects", val: s.insects, lbl: "Insects", tip: "Total insects seen landing on the target flowers." },
-      { val: s.counts ? s.perCount.toFixed(1) : "-", lbl: "Insects per count", tip: "Average insects per 10-minute count. Use this to compare months with different numbers of counts." }]; },
+      { id: "counts", val: s.counts, lbl: "FIT Counts", tip: "Flower-Insect Timed Counts: 10-minute counts of insects visiting a 50 × 50 cm patch of a target flower." },
+      { val: s.counts ? s.perCount.toFixed(1) : "-", lbl: "Insects per count", tip: "Average insects per 10-minute count. Use this to compare months with different numbers of counts." }]
+      .concat(D.polli.length ? [{ id: "polli", val: D.polli.length, lbl: "Polliknow devices", tip: "Polliknow pollinator monitoring devices placed beside target flowers on site." }] : []); },
+    polliPane(h) {
+      TD.section(h, "Polliknow devices", "Each device sits beside a target flower. Click 'Show on map' to see where.");
+      TD.cards(h, D.polli.map(d => ({ key: d.name, name: d.name, meta: "Target plant: " + d.plant, pic: TD.POLLIKNOW_PICS[d.name] || null })),
+        { onPick: n => TD.highlight("fit", p => p.polliknow && p.name === n, n + " (Polliknow)"), placeholderIcon: TD.ICONS.fit });
+      TD.explain(h, "What are the Polliknow devices?", [
+        "Alongside the FIT Counts, " + D.polli.length + " Polliknow pollinator monitoring devices have been placed on site, each beside one of the target flowers: " + Array.from(new Set(D.polli.map(d => d.plant.toLowerCase()))).join(", ") + ".",
+        TD.POLLIKNOW_TEXT].filter(Boolean));
+    },
     donut(h, s, big) {
       TD.section(h, "Insect groups", "FIT Counts record insects by group rather than species. Click a group to highlight the counts where it was seen.");
       TD.donut(h, { items: s.groups, colours: D.fitColours, unit: "insects", big, onPick: g => TD.highlight("fit", p => (this.month === "all" || p.month === this.month) && !!(p.groups || {})[g], g) });
@@ -532,7 +579,8 @@
       const render = () => { body.innerHTML = ""; const s = D.fitStats(this.month);
         TD.xvLayout(body, { chips: this.chips(s), initial: pane, panes: {
           insects: h => { pane = "insects"; this.donut(h, s, true); this.story(h, s); },
-          counts: h => { pane = "counts"; this.list(h, s); } } }); };
+          counts: h => { pane = "counts"; this.list(h, s); },
+          polli: h => { pane = "polli"; this.polliPane(h); } } }); };
       this.monthTabs(top, render); render();
     }
   };
@@ -542,11 +590,46 @@
     if (TD.isMobile()) TD.sheet("peek");
   };
 
+  /* ---- Rare plants ---- */
+  const rarePic = sci => { const f = TD.RARE_PICS[(sci || "").toLowerCase()]; return f ? A("rare-plant-pics/" + f) : null; };
+  const popNum = t => { const m = String(t || "").match(/\d+/); return m ? +m[0] : 0; };
+  D.rare = ((typeof GJ_RARE !== "undefined") ? GJ_RARE.features : []).map(f => { const p = f.properties; return { name: p.common || p.species, sci: p.species, habitat: p.habitat, pop: p.population, note: p.note, date: p.date }; });
+  D.rareSpecies = TD.tally(D.rare, r => r.name, r => ({ sci: r.sci, note: r.note })).map(s => Object.assign(s, { pic: rarePic(s.sci), plants: D.rare.filter(r => r.name === s.name).reduce((t, r) => t + popNum(r.pop), 0) }));
+  D.rareColours = TD.colourMap(D.rareSpecies.map(s => s.name));
+  const pickRare = n => TD.highlight("rare", p => (p.common || p.species) === n, n);
+  R.rare = {
+    title: "Rare plants", group: "Species surveys", colour: TD.C.rare, icon: TD.ICONS.trees, on: false,
+    build() {
+      return pointLayer((typeof GJ_RARE !== "undefined") ? GJ_RARE : { type: "FeatureCollection", features: [] }, "rare", TD.ICONS.trees, null,
+        p => popup(rarePic(p.species), E(p.common || p.species), [["Species", `<i>${E(p.species)}</i>`], ["Habitat", E(p.habitat + (TD.FOSSITT_NAMES[p.habitat] ? " - " + TD.FOSSITT_NAMES[p.habitat] : ""))], ["Population", E(p.population)], ["Recorded", E(p.date)]], E(p.note) + `<div class="mp-credit">Photo © ${E(TD.RARE_CREDIT)}</div>`),
+        p => `<b>${E(p.common || p.species)}</b><br><i class="tt-sub">${E(p.species)}</i>`);
+    },
+    chips() { return [
+      { id: "species", val: D.rareSpecies.length, lbl: "Species", tip: "Rare or notable plant species recorded on site." },
+      { id: "records", val: D.rare.length, lbl: "Records", tip: "Separate locations where a rare plant was recorded." },
+      { val: D.rareSpecies.reduce((t, s) => t + s.plants, 0), lbl: "Individual plants", tip: "Total plants counted across all records." }]; },
+    cards(h, big) {
+      TD.section(h, "Species recorded", "Click a photo to enlarge it, or 'Show on map' to see where it grows.");
+      TD.cards(h, D.rareSpecies.map(s => ({ name: s.name, sci: s.sci, pic: s.pic, credit: "© " + TD.RARE_CREDIT, meta: big ? s.note : s.n + (s.n === 1 ? " record" : " records") })), { onPick: pickRare, placeholderIcon: TD.ICONS.trees });
+    },
+    donut(h, big) {
+      TD.section(h, "Records by species", "Click a species to highlight where it was recorded.");
+      TD.donut(h, { items: D.rareSpecies.map(s => ({ name: s.name, n: s.n, sub: s.sci })), colours: D.rareColours, unit: "records", onPick: pickRare, big });
+    },
+    story(h) {
+      TD.explain(h, "Why do rare plants matter?", [
+        "These plants were recorded in a targeted rare plant survey of the site in spring 2025. Several are uncommon in County Dublin, and Piet Oosterveld's dandelion is sub-endemic to Ireland, so it is found almost nowhere else.",
+        "Plants like these are sensitive to changes such as grassland improvement, heavy grazing or scrub spreading, so their presence suggests parts of Ticknock's grasslands are in good condition. All photos © " + TD.RARE_CREDIT + "."]);
+    },
+    card(el) { paneCard(el, this.chips(), { species: h => this.cards(h), records: h => this.donut(h) }, null); },
+    expand(el, st) { TD.xvLayout(el, { chips: this.chips(), initial: st.pane, panes: { species: h => { this.cards(h, true); this.story(h); }, records: h => { this.donut(h, true); this.story(h); } } }); }
+  };
+
   /* ---- Tree planting ---- */
   const pickTree = hlBy("trees", "tree");
   R.trees = {
     title: "Tree planting", group: "Restoration", colour: TD.C.trees, icon: TD.ICONS.trees, on: false,
-    build() { return pointLayer(GJ_TREES, "trees", TD.ICONS.trees, p => D.treeColours[p.Species] || TD.C.trees,
+    build() { return pointLayer(TREES_FC, "trees", TD.ICONS.trees, p => D.treeColours[p.Species] || TD.C.trees,
       p => { const t = TD.TREES[p.Species] || {}; return popup(t.file ? A("tree-pics/" + t.file) : null, E(p.Species || "Tree"), [["Species", t.sci ? `<i>${E(t.sci)}</i>` : ""]]); },
       p => `<b>${E(p.Species || "Tree")}</b>`); },
     chips() { return [{ id: "trees", val: D.trees.length, lbl: "Trees planted", tip: "Native trees planted as part of the restoration programme." },
@@ -610,6 +693,8 @@
       const wrap = TD.h(`<div class="xv-grid cam-xv"><aside class="xv-rail cam-rail"></aside><section class="xv-main"></section></div>`);
       el.appendChild(wrap);
       const rail = TD.$(".cam-rail", wrap), main = TD.$(".xv-main", wrap);
+      const sppBtn = TD.h(`<button type="button" class="cam-pick cam-spp" data-id="species"><span class="cam-all">${D.camSpecies.length}</span><span><b>Species</b><small>Meet the wildlife</small></span></button>`);
+      sppBtn.onclick = () => show("species"); rail.appendChild(sppBtn);
       const btns = [{ id: "all", label: "All cameras", sub: D.allClips.length + " clips" }].concat(D.cams.map(c => ({ id: c.name, label: c.name, sub: c.clips.length ? c.clips.length + " clips" : "No footage" })));
       btns.forEach(b => { const n = TD.h(`<button type="button" class="cam-pick" data-id="${E(b.id)}">${b.id === "all" ? `<span class="cam-all">${D.cams.length}</span>` : `<img src="${A(TD.ICONS.cameras)}" alt="">`}<span><b>${E(b.label)}</b><small>${E(b.sub)}</small></span></button>`);
         n.onclick = () => show(b.id); rail.appendChild(n); });
@@ -627,8 +712,8 @@
             "Clips are not a count of animals: the same badger or deer can appear in several clips. What the cameras show is which species use the site, and where."]);
           return;
         }
-        const c = D.cams.find(x => x.name === id);
-        TD.section(main, c.name + (c.clips.length ? ` - ${c.species.length} species, ${c.clips.length} clips` : ""));
+        const c = id === "species" ? { name: "all cameras", clips: D.allClips, species: D.camSpecies, all: true } : D.cams.find(x => x.name === id);
+        TD.section(main, c.all ? `${c.species.length} species recorded on the cameras` : c.name + (c.clips.length ? ` - ${c.species.length} species, ${c.clips.length} clips` : ""));
         if (!c.clips.length) { main.appendChild(TD.h(`<div class="empty-note">No footage currently available for ${E(c.name)}.</div>`)); return; }
         if (sp) return detail(c, sp);
         const grid = TD.h(`<div class="animals"></div>`);
@@ -636,7 +721,7 @@
           const info = TD.CAM_SPECIES[s.name] || {}, pic = camPic(s.name);
           const card = TD.h(`<div class="animal"><div class="animal-img">${pic ? `<img src="${pic}" alt="${E(s.name)}">` : ""}</div>
             <div class="animal-name">${E(s.name)}</div><div class="animal-sci">${E(info.sci || "")}</div>
-            <div class="animal-btns"><button type="button" class="pill-btn" data-a="learn">Learn about me</button><button type="button" class="pill-btn ghost" data-a="site">See me on site</button></div></div>`);
+            <div class="animal-btns"><button type="button" class="pill-btn" data-a="learn">Learn about me</button><button type="button" class="pill-btn ghost" data-a="site">View site locations</button></div></div>`);
           const im = TD.$("img", card); const ph = () => { TD.$(".animal-img", card).innerHTML = `<div class="card-ph"><img src="${A(TD.ICONS.cameras)}" alt=""><span>Image to come</span></div>`; };
           if (im) im.addEventListener("error", ph, { once: true }); else ph();
           TD.$('[data-a="learn"]', card).onclick = () => show(id, s.name);
@@ -648,22 +733,22 @@
       };
       const detail = (c, spName) => {
         const s = D.camSpecies.find(x => x.name === spName) || { name: spName }, info = TD.CAM_SPECIES[spName] || {}, clips = c.clips.filter(x => x.sp === spName), pic = camPic(spName);
-        const d = TD.h(`<div class="animal-detail"><button type="button" class="link-btn back">‹ All ${E(c.name)} species</button>
+        const d = TD.h(`<div class="animal-detail"><button type="button" class="link-btn back">‹ All ${c.all ? "" : E(c.name) + " "}species</button>
           <div class="ad-grid"><div class="animal-img big">${pic ? `<img src="${pic}" alt="">` : ""}</div>
           <div><h3>${E(spName)}</h3><div class="animal-sci">${E(info.sci || "")}</div><p>${E(info.note || "")}</p>
-          <div class="muted small">${clips.length} clip${clips.length === 1 ? "" : "s"} on ${E(c.name)}${s.cams && s.cams.length > 1 ? ` · also recorded on ${E(s.cams.filter(x => x !== c.name).join(", "))}` : ""}</div>
-          <div class="cam-clips"></div><button type="button" class="pill-btn ghost" data-a="site">See me on site</button></div></div></div>`);
+          <div class="muted small">${clips.length} clip${clips.length === 1 ? "" : "s"} ${c.all ? "on " + E((s.cams || []).join(" and ")) : "on " + E(c.name) + (s.cams && s.cams.length > 1 ? " · also recorded on " + E(s.cams.filter(x => x !== c.name).join(", ")) : "")}</div>
+          <div class="cam-clips"></div><button type="button" class="pill-btn ghost" data-a="site">View site locations</button></div></div></div>`);
         const im = TD.$(".animal-img img", d); const ph = () => { TD.$(".animal-img", d).innerHTML = `<div class="card-ph"><img src="${A(TD.ICONS.cameras)}" alt=""><span>Image to come</span></div>`; };
         if (im) im.addEventListener("error", ph, { once: true }); else ph();
-        clips.forEach((x, i) => { const b = TD.h(`<button type="button" class="clip"><span class="play">▶</span>Clip ${i + 1}</button>`); b.onclick = () => playClip(x, c.name); TD.$(".cam-clips", d).appendChild(b); });
-        TD.$(".back", d).onclick = () => show(c.name);
+        clips.forEach((x, i) => { const b = TD.h(`<button type="button" class="clip"><span class="play">▶</span>${c.all ? E(x.cam) + " - clip " + (clips.filter((y, j) => y.cam === x.cam && j <= i).length) : "Clip " + (i + 1)}</button>`); b.onclick = () => playClip(x, x.cam || c.name); TD.$(".cam-clips", d).appendChild(b); });
+        TD.$(".back", d).onclick = () => show(c.all ? "species" : c.name);
         TD.$('[data-a="site"]', d).onclick = () => { TD.closeExpanded(); this.pickSpecies(spName); };
         main.appendChild(d);
       };
-      show(st.cam || "all");
+      show(st.cam || "species");
     }
   };
 
-  TD.ORDER = ["study", "route", "hab_area", "hab_lin", "birds", "bats", "amph", "inv", "fit", "trees", "cameras"];
+  TD.ORDER = ["study", "route", "hab_area", "hab_lin", "birds", "bats", "amph", "inv", "fit", "rare", "trees", "cameras"];
   TD.GROUPS = ["General", "Habitats", "Species surveys", "Restoration", "Monitoring"];
 })();

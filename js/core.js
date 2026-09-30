@@ -12,7 +12,9 @@ TD.fmt = n => (n == null || n === "") ? "-" : (typeof n === "number" ? n.toLocal
 TD.isMobile = () => window.matchMedia("(max-width: 760px)").matches;
 TD.credit = path => {
   if (!path) return "";
-  const f = decodeURIComponent(path).split("/").pop().replace(/\.(jpe?g|png)$/i, "");
+  const fileName = decodeURIComponent(path).split("/").pop();
+  if (TD.CREDITS && Object.prototype.hasOwnProperty.call(TD.CREDITS, fileName)) return TD.CREDITS[fileName] ? "© " + TD.CREDITS[fileName] : "";
+  const f = fileName.replace(/\.(jpe?g|png)$/i, "");
   if (!/(image|saxifrag|stock)/i.test(f)) return "";
   const last = f.split(/\s*-\s*/).pop().trim();
   if (!/^[A-Z][A-Za-z .'’]+$/.test(last) || /^(adult|male|female|caterpillar|cocoon|image|saxifraga|stock)$/i.test(last)) return "";
@@ -47,7 +49,7 @@ TD.foldOther = (items, colours) => {
 TD.donut = (host, opts) => {
   const items = opts.items.filter(i => i.n > 0);
   const total = items.reduce((s, i) => s + i.n, 0);
-  const wrap = TD.h(`<div class="donut ${opts.big ? "donut-big" : ""}">
+  const wrap = TD.h(`<div class="donut ${opts.big ? "donut-big" : ""} ${opts.stacked ? "donut-stack" : ""}">
       <div class="donut-canvas"><canvas></canvas><div class="donut-centre"><b>${TD.fmt(total)}</b><span>${TD.esc(opts.centreLabel || opts.unit || "")}</span></div></div>
       <div class="donut-legend"></div></div>`);
   host.appendChild(wrap);
@@ -71,13 +73,30 @@ TD.donut = (host, opts) => {
       responsive: true, maintainAspectRatio: false, cutout: "64%", animation: { duration: 350 },
       onClick: (e, els) => { if (els.length && opts.onPick) { const it = items[els[0].index]; if (!it.other) opts.onPick(it.name); } },
       onHover: (e, els) => { e.native.target.style.cursor = els.length && opts.onPick ? "pointer" : "default"; },
-      plugins: { legend: { display: false },
+      plugins: { legend: { display: false }, pctLabels: { on: !!opts.pct, total },
         tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} ${opts.unit || ""} (${Math.round(c.raw / total * 100)}%)` } } }
     }
   });
   wrap._chart = chart;
+  if (opts.pct) TD.$$(".lg-row", wrap).forEach((r, i) => { const it = items[i]; if (it) TD.$(".lg-n", r).textContent = TD.fmt(it.n) + "  (" + Math.round(it.n / total * 100) + "%)"; });
   return wrap;
 };
+/* Chart.js plugin: writes the % on each doughnut slice big enough to hold it */
+if (window.Chart) Chart.register({
+  id: "pctLabels",
+  afterDatasetsDraw(chart, args, o) {
+    if (!o || !o.on) return;
+    const { ctx } = chart, meta = chart.getDatasetMeta(0), data = chart.data.datasets[0].data;
+    ctx.save(); ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = "700 " + (chart.width > 180 ? 12 : 10) + "px Inter, system-ui, sans-serif";
+    ctx.shadowColor = "rgba(0,0,0,.35)"; ctx.shadowBlur = 3;
+    meta.data.forEach((arc, i) => {
+      const pct = data[i] / o.total * 100; if (pct < 5) return;
+      const p = arc.tooltipPosition(); ctx.fillText(Math.round(pct) + "%", p.x, p.y);
+    });
+    ctx.restore();
+  }
+});
 
 /* ---------- horizontal bars (birds, habitats) ---------- */
 /* opts: { items:[{name,n,label?,info?}], colour, unit, onPick } */
@@ -245,7 +264,8 @@ TD.xvLayout = (host, cfg) => {
     tabRow = { setActive: id => TD.$$(".xv-link", ex).forEach(b => b.classList.toggle("active", b.dataset.id === id)) };
   }
   if (cfg.railExtra) cfg.railExtra(rail, show);
-  show(cfg.initial);
+  const firstId = (cfg.chips.find(c => c.id && cfg.panes[c.id]) || {}).id;
+  show(cfg.initial && cfg.panes[cfg.initial] ? cfg.initial : firstId);
   return { show, main, rail };
 };
 
@@ -310,7 +330,7 @@ TD.explain = (host, title, paras) => {
   return el;
 };
 /* two-column wrapper so a chart and its story sit side by side on wide screens */
-TD.split = (host) => { const el = TD.h(`<div class="split"><div class="split-a"></div><div class="split-b"></div></div>`); host.appendChild(el); return [TD.$(".split-a", el), TD.$(".split-b", el)]; };
+TD.split = (host, mod) => { const el = TD.h(`<div class="split ${mod ? "split-" + mod : ""}"><div class="split-a"></div><div class="split-b"></div></div>`); host.appendChild(el); return [TD.$(".split-a", el), TD.$(".split-b", el)]; };
 
 TD.parseDate = s => { const m = String(s || "").match(/(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null; };
 TD.fmtDate = d => d ? d.toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" }) : "";
@@ -323,3 +343,18 @@ TD.dateSpan = rows => {
   return { visits: uniq, label: a.getTime() === b.getTime() ? TD.fmtDate(a) : TD.fmtMonth(a) + " - " + TD.fmtMonth(b) };
 };
 TD.pct = (a, b) => b ? Math.round(a / b * 100) + "%" : "0%";
+
+/* Photo or video block with graceful placeholder. m: {src, poster?, credit?} */
+TD.media = (host, m, caption) => {
+  if (!m) return;
+  const isV = TD.isVideo(m.src);
+  const el = TD.h(`<figure class="media">${isV
+    ? `<video src="${m.src}" ${m.poster ? `poster="${m.poster}"` : ""} controls muted playsinline preload="metadata"></video>`
+    : `<img src="${m.src}" alt="${TD.esc(caption || "")}" loading="lazy">`}
+    ${caption || m.credit ? `<figcaption>${TD.esc(caption || "")}${m.credit ? ` <span>© ${TD.esc(m.credit)}</span>` : ""}</figcaption>` : ""}</figure>`);
+  const node = TD.$(isV ? "video" : "img", el);
+  node.addEventListener("error", () => { node.replaceWith(TD.h(`<div class="card-ph media-ph"><img src="${TD.asset(TD.ICONS.snapshot)}" alt=""><span>${isV ? "Video" : "Photo"} to come</span></div>`)); }, { once: true });
+  if (!isV) node.addEventListener("click", () => TD.lightbox("image", m.src, caption, "", m.credit ? "© " + m.credit : ""));
+  host.appendChild(el);
+  return el;
+};

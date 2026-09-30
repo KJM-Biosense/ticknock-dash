@@ -12,10 +12,18 @@ TD.CESIUM_URL = "https://cdn.jsdelivr.net/npm/cesium@1.121.0/Build/Cesium/";
 TD.PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
 TD.OTHER = "#9aa69c";
 
+/* Media for the site and route cards */
+TD.SITE_VIDEO = { src: "assets/videos/ticknock-drone.mp4", poster: "assets/videos/ticknock-drone.jpg" };
+TD.ROUTE_PHOTO = { src: "assets/route/timber-walkway.jpg" };
+
+/* Polliknow devices: images keyed by device name (as in the GeoPackage), e.g. "Ragwort 1": "assets/polliknow/ragwort-1.jpg" */
+TD.POLLIKNOW_PICS = {};
+TD.POLLIKNOW_TEXT = "";   /* one or two sentences from Polliknow on what the devices record */
+
 /* Layer colours (dots, rings, headers) */
 TD.C = {
   study: "#176560", route: "#ffd84d", hab_area: "#3a9a40", hab_lin: "#7ab648", birds: "#4a90d9",
-  bats: "#9b59b6", amph: "#16a085", inv: "#d35400", fit: "#c2185b", trees: "#27ae60", cameras: "#e74c3c"
+  bats: "#9b59b6", amph: "#16a085", inv: "#d35400", fit: "#c2185b", polliknow: "#f39c12", rare: "#8e44ad", trees: "#27ae60", cameras: "#e74c3c"
 };
 
 TD.ICONS = {
@@ -78,8 +86,8 @@ TD.BIRD_PICS = {
   "whitethroat": "Whitethroat - image pevank01-warbler-5216084.jpg",
   "dunnock": "Dunnock - image - theotherkev-dunnock-on-a-fence-4857419.jpg",
   "jackdaw": "Jackdaw - image - inspiredimages-bird-445290.jpg",
-  "pheasant": "Pheasant.jpg",
-  "bullfinch": "Bullfinch.jpg"
+  "pheasant": "Pheasant - Image - Saxifraga - Martin Mollet.jpg",
+  "bullfinch": "Bullfinch - Image - Saxifraga - Jan Nijendijk.jpg"
 };
 TD.BAT_PICS = {
   "nyctalus leisleri": "Stock-Nyctalus leisleri-Image-Saxifraga-Jeroen Willemsen.jpg",
@@ -102,6 +110,17 @@ TD.INV_PICS = {
   "zygaena filipendulae": [{ stage: "Adult", file: "04.06.2025-Zygaena filipendulae-Adult.jpg" }, { stage: "Cocoon", file: "23.05.2025-Zygaena filipendulae-Cocoon.jpg" }],
   "tyria jacobaeae": [{ stage: "Caterpillar", file: "01.08.2025-Tyria jacobaeae-Caterpillar.jpg" }],
   "aglais io": [{ stage: "Adult", file: "Stock-Aglais io-Adult.jpg" }, { stage: "Caterpillar", file: "24.06.2025-Aglais io-Caterpillar.jpg" }]
+};
+
+/* ---------- Rare plants (images: assets/rare-plant-pics/<file>) ---------- */
+TD.RARE_CREDIT = "Alexis FitzGerald";
+TD.RARE_PICS = {
+  "taraxacum faeroense": "Taraxacum faeroense.jpg",
+  "taraxacum pietii-oosterveldii": "Taraxacum pietii-oosterveldii.jpg",
+  "primula veris": "Primula veris.jpg",
+  "primula x polyantha": "Primula × polyantha.jpg",
+  "senecio sylvaticus": "Senecio sylvaticus.jpg",
+  "lathyrus linifolius": "Lathyrus linifolius.jpg"
 };
 
 /* ---------- Tree planting (images: assets/tree-pics/<file>) ---------- */
@@ -143,6 +162,31 @@ TD.CAM_SPECIES = {
     note: "A small, agile bird of prey of woodland and woodland edges. Sparrowhawks hunt small birds by surprise, flying fast and low through cover." },
   "Pheasant":    { sci: "Phasianus colchicus", file: "pheasant.png",
     note: "A large gamebird originally from Asia, introduced to Ireland centuries ago. Pheasants feed on the ground on seeds, shoots and insects, often along woodland edges." }
+};
+
+/* ---------- Photo credits ----------
+   Credits are read from the filename when it ends "- Photographer Name.jpg" (the bat photos work this way).
+   Anything listed here overrides that. Fill in the blanks ("" = no credit shown yet). */
+TD.CREDITS = {
+  "Blue Tit - Image - Saxifraga.jpg": "",
+  "Eurasian Jay - Image - Saxifraga.jpg": "",
+  "Swallow - Image - Saxifraga.jpg": "",
+  "Buzzard - image - saxifragia - theotherkev-buzzard-6980727.jpg": "",
+  "Chiffchaff - image - hapr80-bird-7897032.jpg": "",
+  "Coal Tit - image - saxifragia - erik_karits-bird-8312424.jpg": "",
+  "Dunnock - image - theotherkev-dunnock-on-a-fence-4857419.jpg": "",
+  "Great Tit - image - saxifragia - jggrz-great-tit-7948318.jpg": "",
+  "Hooded Crow - image - saxifragia - Orna.jpg": "",
+  "Jackdaw - image - inspiredimages-bird-445290.jpg": "",
+  "Jay - image - tomaszproszek-jay-548381.jpg": "",
+  "Long-Tailed Tit - image - theotherkev-long-tailed-tit-4769449.jpg": "",
+  "Mistle Thrush - image - theotherkev-mistle-thrush-4743360.jpg": "",
+  "Robin - image - terbe_rezso-robin-9419575.jpg": "",
+  "Song Thrush - image - theotherkev-thrush-5897868.jpg": "",
+  "Sparrowhawk - image - josepmonter-sparrowhawk-5592388.jpg": "",
+  "Whitethroat - image pevank01-warbler-5216084.jpg": "",
+  "Stock-Aglais io-Adult.jpg": "",
+  "birch.jpg": "", "alder.jpg": "", "oak.jpg": "", "willow.jpg": "", "rowan.jpg": "", "holly.jpg": ""
 };
 
 /* Birds: BTO breeding codes counted as confirmed breeding */

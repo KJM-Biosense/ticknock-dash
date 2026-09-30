@@ -13,6 +13,7 @@
   };
   const map = TD.map = L.map("map", { zoomControl: false, zoomSnap: 0.25, layers: [basemaps.satellite], tap: true }).setView([53.2508, -6.2490], 16);
   L.control.zoom({ position: "topright" }).addTo(map);
+  map.createPane("routes").style.zIndex = 450;   // walking route draws above habitat polygons, below markers
   let curBM = "satellite";
   TD.$$(".bm-btn[data-bm]").forEach(b => b.addEventListener("click", () => {
     const k = b.dataset.bm; if (k === curBM) return;
